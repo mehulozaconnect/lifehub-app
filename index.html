@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#4f46e5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LifeHub">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+<title>LifeHub</title>
+<style>
+:root{
+  --bg:#f3f4f6; --card:#ffffff; --text:#111827; --muted:#6b7280; --border:#e5e7eb;
+  --accent:#4f46e5; --accent-soft:#eef2ff; --green:#16a34a; --red:#dc2626; --amber:#d97706;
+  --radius:14px; --nav-h:64px; --header-h:56px;
+}
+[data-theme="dark"]{
+  --bg:#0f172a; --card:#1e293b; --text:#f1f5f9; --muted:#94a3b8; --border:#334155;
+  --accent:#818cf8; --accent-soft:#312e81;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg); color:var(--text);
+  -webkit-tap-highlight-color:transparent;
+  overscroll-behavior-y:none;
+}
+#app{max-width:520px;margin:0 auto;min-height:100vh;position:relative;padding-bottom:calc(var(--nav-h) + 12px);}
+header.topbar{
+  position:sticky;top:0;z-index:20;background:var(--bg);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px 8px;
+}
+header.topbar h1{font-size:20px;margin:0;font-weight:700;}
+header.topbar .sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.icon-btn{
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  width:38px;height:38px;display:flex;align-items:center;justify-content:center;
+  color:var(--text);cursor:pointer;
+}
+main{padding:4px 14px 20px;}
+.view{display:none;animation:fadein .15s ease;}
+.view.active{display:block;}
+@keyframes fadein{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+.card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:14px 16px;margin-bottom:12px;
+}
+.card h2{font-size:15px;margin:0 0 10px;font-weight:700;}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px;}
+.stat .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
+.stat .value{font-size:20px;font-weight:700;margin-top:4px;}
+.list-item{
+  display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);
+}
+.list-item:last-child{border-bottom:none;}
+.list-item .meta{flex:1;min-width:0;}
+.list-item .title{font-size:14px;font-weight:600;}
+.list-item .sub{font-size:12px;color:var(--muted);}
+.list-item .amt{font-size:14px;font-weight:700;white-space:nowrap;}
+.pill{
+  font-size:11px;padding:3px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);
+  font-weight:600;white-space:nowrap;
+}
+.empty{color:var(--muted);font-size:13px;text-align:center;padding:18px 0;}
+button.primary{
+  background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px 16px;
+  font-size:14px;font-weight:600;cursor:pointer;width:100%;
+}
+button.secondary{
+  background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:10px;
+  padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;
+}
+button.ghost{
+  background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:4px 8px;
+}
+input,select,textarea{
+  width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;
+  padding:10px 12px;font-size:14px;color:var(--text);margin-bottom:10px;font-family:inherit;
+}
+label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px;}
+.field-row{display:flex;gap:8px;}
+.field-row>div{flex:1;}
+.fab{
+  position:fixed;bottom:calc(var(--nav-h) + 16px);right:calc((100vw - min(520px,100vw))/2 + 16px);
+  width:52px;height:52px;border-radius:50%;background:var(--accent);color:#fff;border:none;
+  font-size:26px;box-shadow:0 6px 16px rgba(79,70,229,.4);cursor:pointer;z-index:25;
+  display:flex;align-items:center;justify-content:center;line-height:0;
+}
+nav.bottomnav{
+  position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);
+  background:var(--card);border-top:1px solid var(--border);
+  display:flex;z-index:20;
+  padding-bottom:env(safe-area-inset-bottom);
+  max-width:520px;margin:0 auto;
+}
+nav.bottomnav button{
+  flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:2px;color:var(--muted);cursor:pointer;font-size:10px;font-weight:600;
+}
+nav.bottomnav button.active{color:var(--accent);}
+nav.bottomnav svg{width:22px;height:22px;}
+.progress-bar{height:8px;border-radius:999px;background:var(--border);overflow:hidden;margin:6px 0;}
+.progress-bar .fill{height:100%;border-radius:999px;background:var(--accent);}
+.progress-bar .fill.over{background:var(--red);}
+.progress-bar .fill.good{background:var(--green);}
+.tag-btn{
+  border:1px solid var(--border);background:var(--card);border-radius:999px;padding:6px 12px;
+  font-size:12px;cursor:pointer;color:var(--text);
+}
+.tag-btn.selected{background:var(--accent);color:#fff;border-color:var(--accent);}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:40;display:flex;align-items:flex-end;
+}
+.modal-backdrop.hidden{display:none;}
+.modal-sheet{
+  background:var(--bg);width:100%;max-width:520px;margin:0 auto;border-radius:18px 18px 0 0;
+  padding:18px 18px calc(20px + env(safe-area-inset-bottom));max-height:88vh;overflow-y:auto;
+}
+.modal-sheet h3{margin:0 0 12px;font-size:16px;}
+.habit-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:8px;}
+.habit-day{
+  aspect-ratio:1;border-radius:6px;background:var(--border);display:flex;align-items:center;
+  justify-content:center;font-size:10px;color:var(--muted);cursor:pointer;
+}
+.habit-day.done{background:var(--accent);color:#fff;}
+.habit-day.today{outline:2px solid var(--accent);}
+canvas{width:100%!important;height:140px!important;}
+.section-title{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:14px 0 6px;font-weight:700;}
+.insight-row{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--border);}
+.insight-row:last-child{border-bottom:none;}
+.insight-icon{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;}
+.insight-row.warn .insight-icon{background:rgba(220,38,38,.12);color:var(--red);}
+.insight-row.good .insight-icon{background:rgba(22,163,74,.12);color:var(--green);}
+.insight-row.info .insight-icon{background:var(--accent-soft);color:var(--accent);}
+.insight-text{font-size:13px;line-height:1.4;}
+.stat .delta{font-size:11px;margin-top:3px;font-weight:600;}
+.stat .delta.up{color:var(--red);}
+.stat .delta.down{color:var(--green);}
+.swipe-actions{display:flex;gap:6px;}
+.toast{
+  position:fixed;top:14px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);
+  padding:9px 16px;border-radius:10px;font-size:13px;z-index:60;opacity:0;transition:opacity .25s;pointer-events:none;
+}
+.toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header class="topbar">
+    <div>
+      <h1 id="pageTitle">Dashboard</h1>
+      <div class="sub" id="pageDate"></div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="icon-btn" id="themeBtn" title="Toggle theme">🌓</button>
+      <button class="icon-btn" id="settingsBtn" title="Settings">⚙️</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- DASHBOARD -->
+    <section class="view active" id="view-dashboard">
+      <div class="card" id="insightsCard">
+        <h2>Insights</h2>
+        <div id="insightsList"></div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat"><div class="label">Spent this month</div><div class="value" id="dashSpent">$0</div><div class="delta" id="dashSpentDelta"></div></div>
+        <div class="stat"><div class="label">Budget left</div><div class="value" id="dashBudgetLeft">$0</div></div>
+        <div class="stat"><div class="label">Sales this month</div><div class="value" id="dashSales">$0</div><div class="delta" id="dashSalesDelta"></div></div>
+        <div class="stat"><div class="label">Outstanding</div><div class="value" id="dashOutstanding">$0</div></div>
+        <div class="stat"><div class="label">Tasks today</div><div class="value" id="dashTasks">0</div></div>
+        <div class="stat"><div class="label">Pipeline value</div><div class="value" id="dashPipeline">$0</div></div>
+      </div>
+
+      <div class="card">
+        <h2>Today's tasks</h2>
+        <div id="dashTaskList"></div>
+      </div>
+
+      <div class="card">
+        <h2>Habits today</h2>
+        <div id="dashHabitList"></div>
+      </div>
+
+      <div class="card">
+        <h2>Goals in progress</h2>
+        <div id="dashGoalList"></div>
+      </div>
+
+      <div class="card">
+        <h2>Recent sales</h2>
+        <div id="dashSalesList"></div>
+      </div>
+
+      <div class="card" id="dashPipelineCard" style="display:none;">
+        <h2>Pipeline snapshot</h2>
+        <div id="dashPipelineList"></div>
+      </div>
+
+      <div class="card">
+        <h2>Recent expenses</h2>
+        <div id="dashExpenseList"></div>
+      </div>
+    </section>
+
+    <!-- EXPENSES -->
+    <section class="view" id="view-expenses">
+      <div class="stat-grid">
+        <div class="stat"><div class="label">Spent (<span id="expMonthLabel"></span>)</div><div class="value" id="expTotal">$0</div></div>
+        <div class="stat"><div class="label">Budget left</div><div class="value" id="expLeft">$0</div></div>
+      </div>
+      <div class="card">
+        <h2>Import from Excel/CSV</h2>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Upload a spreadsheet and LifeHub will auto-detect expense rows, sales invoices, and pipeline leads.</div>
+        <button class="secondary" id="importExpenseBtn" style="width:100%;">Choose file</button>
+        <div id="importSummaryExp" style="font-size:12px;color:var(--muted);margin-top:8px;"></div>
+      </div>
+      <div class="card">
+        <h2>Budget by category</h2>
+        <div id="budgetBars"></div>
+        <button class="secondary" style="margin-top:8px;" id="editBudgetsBtn">Edit budgets</button>
+      </div>
+      <div class="card">
+        <h2>All expenses</h2>
+        <div id="expenseList"></div>
+      </div>
+    </section>
+
+    <!-- SALES -->
+    <section class="view" id="view-sales">
+      <div class="stat-grid">
+        <div class="stat"><div class="label">Sales (<span id="salesMonthLabel"></span>)</div><div class="value" id="salesTotal">$0</div></div>
+        <div class="stat"><div class="label"># of sales</div><div class="value" id="salesCount">0</div></div>
+      </div>
+      <div class="card">
+        <h2>Import from Excel/CSV</h2>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Upload your sales tracker / billing sheet. Invoices, collections and pipeline leads are detected automatically.</div>
+        <button class="secondary" id="importSalesBtn" style="width:100%;">Choose file</button>
+        <div id="importSummarySales" style="font-size:12px;color:var(--muted);margin-top:8px;"></div>
+      </div>
+      <div class="card">
+        <h2>Collections (all-time)</h2>
+        <div class="stat-grid">
+          <div class="stat"><div class="label">Invoiced</div><div class="value" id="colInvoiced">$0</div></div>
+          <div class="stat"><div class="label">Received</div><div class="value" id="colReceived">$0</div></div>
+        </div>
+        <div class="row"><span class="sub" style="font-size:12px;color:var(--muted);">Outstanding: <span id="colOutstanding">$0</span></span><span class="sub" id="colPct" style="font-size:12px;color:var(--muted);"></span></div>
+        <div class="progress-bar"><div class="fill good" id="colFill" style="width:0%;"></div></div>
+      </div>
+      <div class="card" id="pipelineCard" style="display:none;">
+        <h2>Pipeline by stage</h2>
+        <div id="pipelineStages"></div>
+      </div>
+      <div class="card">
+        <h2>Last 7 days</h2>
+        <canvas id="salesChart"></canvas>
+      </div>
+      <div class="card">
+        <h2>Top items</h2>
+        <div id="topItems"></div>
+      </div>
+      <div class="card">
+        <h2>All sales</h2>
+        <div id="salesList"></div>
+      </div>
+    </section>
+
+    <!-- TASKS -->
+    <section class="view" id="view-tasks">
+      <div class="chips" id="taskFilterChips">
+        <button class="tag-btn selected" data-filter="open">Open</button>
+        <button class="tag-btn" data-filter="today">Today</button>
+        <button class="tag-btn" data-filter="all">All</button>
+        <button class="tag-btn" data-filter="done">Done</button>
+      </div>
+      <div class="card">
+        <div id="taskList"></div>
+      </div>
+    </section>
+
+    <!-- GOALS -->
+    <section class="view" id="view-goals">
+      <div class="card">
+        <div id="goalList"></div>
+      </div>
+    </section>
+
+    <!-- HABITS -->
+    <section class="view" id="view-habits">
+      <div class="card">
+        <div id="habitList"></div>
+      </div>
+    </section>
+  </main>
+
+  <button class="fab" id="fabBtn">+</button>
+
+  <nav class="bottomnav">
+    <button class="navbtn active" data-view="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>
+      Home
+    </button>
+    <button class="navbtn" data-view="expenses">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M2 10h20"/></svg>
+      Budget
+    </button>
+    <button class="navbtn" data-view="sales">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 7-8"/><path d="M14 7h7v7"/></svg>
+      Sales
+    </button>
+    <button class="navbtn" data-view="tasks">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12l3 3 5-6"/></svg>
+      Tasks
+    </button>
+    <button class="navbtn" data-view="goals">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>
+      Goals
+    </button>
+    <button class="navbtn" data-view="habits">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2c3 4-3 6 0 10 3 4-1 8-1 8s6-2 7-8c1-6-4-8-6-10z"/></svg>
+      Habits
+    </button>
+  </nav>
+</div>
+
+<div class="modal-backdrop hidden" id="modalBackdrop">
+  <div class="modal-sheet" id="modalSheet"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<input type="file" id="importFile" accept="application/json" style="display:none;">
+<input type="file" id="workbookFile" accept=".xlsx,.xls,.csv" style="display:none;">
+
+<script>
+// ---------- Storage ----------
+const STORAGE_KEY = 'lifehub_v1';
+const DEFAULT_CATEGORIES = ['Food','Transport','Housing','Utilities','Shopping','Entertainment','Health','Other'];
+
+function defaultState(){
+  return {
+    currency: '$',
+    theme: 'light',
+    expenses: [],
+    budgets: Object.fromEntries(DEFAULT_CATEGORIES.map(c => [c, 0])),
+    sales: [],
+    pipeline: [],
+    tasks: [],
+    goals: [],
+    habits: [],
+    notifPermAsked: false
+  };
+}
+let state = load();
+function load(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    return Object.assign(defaultState(), parsed);
+  }catch(e){ return defaultState(); }
+}
+function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+// ---------- Helpers ----------
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function fmtMoney(n){
+  const num = Number(n)||0;
+  return state.currency + num.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function fmtDateNice(d){
+  if(!d) return '';
+  const dt = new Date(d + 'T00:00:00');
+  return dt.toLocaleDateString(undefined,{month:'short', day:'numeric'});
+}
+function monthKey(dateStr){ return (dateStr||todayStr()).slice(0,7); }
+function isSameMonth(dateStr, ref){ return monthKey(dateStr) === monthKey(ref); }
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._h);
+  toast._h = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+// ---------- Theme ----------
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme', state.theme);
+}
+document.getElementById('themeBtn').onclick = ()=>{
+  state.theme = state.theme === 'dark' ? 'light' : 'dark';
+  save(); applyTheme();
+};
+
+// ---------- Navigation ----------
+const views = ['dashboard','expenses','sales','tasks','goals','habits'];
+let currentView = 'dashboard';
+const titles = {dashboard:'Dashboard', expenses:'Budget', sales:'Sales', tasks:'Tasks', goals:'Goals', habits:'Habits'};
+
+function switchView(v){
+  currentView = v;
+  views.forEach(name=>{
+    document.getElementById('view-'+name).classList.toggle('active', name===v);
+  });
+  document.querySelectorAll('.navbtn').forEach(b=> b.classList.toggle('active', b.dataset.view===v));
+  document.getElementById('pageTitle').textContent = titles[v];
+  renderAll();
+}
+document.querySelectorAll('.navbtn').forEach(btn=>{
+  btn.addEventListener('click', ()=> switchView(btn.dataset.view));
+});
+
+function setDateHeader(){
+  document.getElementById('pageDate').textContent = new Date().toLocaleDateString(undefined,{weekday:'long', month:'long', day:'numeric'});
+}
+
+// ---------- Modal ----------
+const backdrop = document.getElementById('modalBackdrop');
+const sheet = document.getElementById('modalSheet');
+function openModal(html){
+  sheet.innerHTML = html;
+  backdrop.classList.remove('hidden');
+}
+function closeModal(){ backdrop.classList.add('hidden'); sheet.innerHTML=''; }
+backdrop.addEventListener('click', (e)=>{ if(e.target === backdrop) closeModal(); });
+
+// ---------- Expenses & Budget ----------
+function allCategories(){
+  const cats = new Set(DEFAULT_CATEGORIES);
+  Object.keys(state.budgets).forEach(c=>cats.add(c));
+  state.expenses.forEach(e=>cats.add(e.category));
+  return Array.from(cats);
+}
+
+function openExpenseModal(existing){
+  const cats = allCategories();
+  const e = existing || {id:null, amount:'', category:cats[0], note:'', date: todayStr()};
+  openModal(`
+    <h3>${existing? 'Edit expense':'Add expense'}</h3>
+    <label>Amount</label>
+    <input type="number" id="f_amount" inputmode="decimal" placeholder="0.00" value="${e.amount}">
+    <label>Category</label>
+    <select id="f_category">${cats.map(c=>`<option ${c===e.category?'selected':''}>${c}</option>`).join('')}</select>
+    <label>Note</label>
+    <input type="text" id="f_note" placeholder="Optional" value="${e.note||''}">
+    <label>Date</label>
+    <input type="date" id="f_date" value="${e.date}">
+    <div style="display:flex; gap:8px; margin-top:6px;">
+      ${existing? '<button class="secondary" id="f_delete" style="color:var(--red);border-color:var(--red);">Delete</button>':''}
+      <button class="primary" id="f_save">${existing?'Save':'Add expense'}</button>
+    </div>
+  `);
+  document.getElementById('f_save').onclick = ()=>{
+    const amount = parseFloat(document.getElementById('f_amount').value)||0;
+    const category = document.getElementById('f_category').value;
+    const note = document.getElementById('f_note').value.trim();
+    const date = document.getElementById('f_date').value || todayStr();
+    if(amount<=0){ toast('Enter an amount'); return; }
+    if(existing){
+      Object.assign(existing,{amount,category,note,date});
+    }else{
+      state.expenses.unshift({id:uid(),amount,category,note,date});
+    }
+    save(); closeModal(); renderAll(); toast('Expense saved');
+  };
+  if(existing){
+    document.getElementById('f_delete').onclick = ()=>{
+      state.expenses = state.expenses.filter(x=>x.id!==existing.id);
+      save(); closeModal(); renderAll(); toast('Expense deleted');
+    };
+  }
+}
+
+function openBudgetsModal(){
+  const cats = allCategories();
+  openModal(`
+    <h3>Monthly budgets</h3>
+    <div id="budgetInputs">
+    ${cats.map(c=>`
+      <label>${c}</label>
+      <input type="number" data-cat="${c}" class="budget-input" value="${state.budgets[c]||0}">
+    `).join('')}
+    </div>
+    <label>Add category</label>
+    <div class="field-row">
+      <input type="text" id="newCat" placeholder="Category name">
+      <button class="secondary" id="addCatBtn" style="width:auto;">Add</button>
+    </div>
+    <button class="primary" id="saveBudgets">Save budgets</button>
+  `);
+  document.getElementById('addCatBtn').onclick = ()=>{
+    const name = document.getElementById('newCat').value.trim();
+    if(!name) return;
+    state.budgets[name] = state.budgets[name]||0;
+    openBudgetsModal();
+  };
+  document.getElementById('saveBudgets').onclick = ()=>{
+    document.querySelectorAll('.budget-input').forEach(inp=>{
+      state.budgets[inp.dataset.cat] = parseFloat(inp.value)||0;
+    });
+    save(); closeModal(); renderAll(); toast('Budgets updated');
+  };
+}
+
+function renderExpenses(){
+  const month = todayStr();
+  document.getElementById('expMonthLabel').textContent = new Date().toLocaleDateString(undefined,{month:'long'});
+  const monthExpenses = state.expenses.filter(e=>isSameMonth(e.date, month));
+  const total = monthExpenses.reduce((s,e)=>s+Number(e.amount),0);
+  const totalBudget = Object.values(state.budgets).reduce((s,v)=>s+Number(v),0);
+  document.getElementById('expTotal').textContent = fmtMoney(total);
+  document.getElementById('expLeft').textContent = fmtMoney(totalBudget - total);
+
+  const byCat = {};
+  monthExpenses.forEach(e=>{ byCat[e.category] = (byCat[e.category]||0) + Number(e.amount); });
+  const bars = Object.keys(state.budgets).filter(c=>state.budgets[c]>0 || byCat[c]).map(c=>{
+    const spent = byCat[c]||0; const budget = state.budgets[c]||0;
+    const pct = budget>0 ? Math.min(100,(spent/budget)*100) : (spent>0?100:0);
+    const overClass = budget>0 && spent>budget ? 'over' : 'good';
+    return `<div style="margin-bottom:10px;">
+      <div class="row"><span style="font-size:13px;font-weight:600;">${c}</span><span style="font-size:12px;color:var(--muted);">${fmtMoney(spent)} / ${budget>0?fmtMoney(budget):'no budget'}</span></div>
+      <div class="progress-bar"><div class="fill ${overClass}" style="width:${pct}%;"></div></div>
+    </div>`;
+  }).join('');
+  document.getElementById('budgetBars').innerHTML = bars || '<div class="empty">No budgets set yet.</div>';
+
+  const list = state.expenses.slice(0,50).map(e=>`
+    <div class="list-item" data-id="${e.id}" data-kind="expense">
+      <div class="meta"><div class="title">${e.category}${e.note?': '+e.note:''}</div><div class="sub">${fmtDateNice(e.date)}</div></div>
+      <div class="amt">${fmtMoney(e.amount)}</div>
+    </div>`).join('');
+  document.getElementById('expenseList').innerHTML = list || '<div class="empty">No expenses logged yet.</div>';
+  document.querySelectorAll('#expenseList .list-item, #dashExpenseList .list-item').forEach(el=>{
+    el.onclick = ()=>{
+      const item = state.expenses.find(x=>x.id===el.dataset.id);
+      if(item) openExpenseModal(item);
+    };
+  });
+}
+document.getElementById('editBudgetsBtn').onclick = openBudgetsModal;
+
+// ---------- Sales ----------
+function openSaleModal(existing){
+  const s = existing || {id:null, item:'', amount:'', customer:'', date: todayStr()};
+  openModal(`
+    <h3>${existing? 'Edit sale':'Add sale'}</h3>
+    <label>Item / service</label>
+    <input type="text" id="f_item" placeholder="e.g. Consulting" value="${s.item}">
+    <label>Amount</label>
+    <input type="number" id="f_amount" inputmode="decimal" placeholder="0.00" value="${s.amount}">
+    <label>Customer (optional)</label>
+    <input type="text" id="f_customer" value="${s.customer||''}">
+    <label>Date</label>
+    <input type="date" id="f_date" value="${s.date}">
+    <div style="display:flex; gap:8px; margin-top:6px;">
+      ${existing? '<button class="secondary" id="f_delete" style="color:var(--red);border-color:var(--red);">Delete</button>':''}
+      <button class="primary" id="f_save">${existing?'Save':'Add sale'}</button>
+    </div>
+  `);
+  document.getElementById('f_save').onclick = ()=>{
+    const item = document.getElementById('f_item').value.trim() || 'Sale';
+    const amount = parseFloat(document.getElementById('f_amount').value)||0;
+    const customer = document.getElementById('f_customer').value.trim();
+    const date = document.getElementById('f_date').value || todayStr();
+    if(amount<=0){ toast('Enter an amount'); return; }
+    if(existing){ Object.assign(existing,{item,amount,customer,date}); }
+    else{ state.sales.unshift({id:uid(),item,amount,customer,date}); }
+    save(); closeModal(); renderAll(); toast('Sale saved');
+  };
+  if(existing){
+    document.getElementById('f_delete').onclick = ()=>{
+      state.sales = state.sales.filter(x=>x.id!==existing.id);
+      save(); closeModal(); renderAll(); toast('Sale deleted');
+    };
+  }
+}
+
+function drawBarChart(canvasId, labels, values){
+  const canvas = document.getElementById(canvasId);
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = canvas.clientWidth || 300, cssH = 140;
+  canvas.width = cssW*dpr; canvas.height = cssH*dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,cssW,cssH);
+  const max = Math.max(1, ...values);
+  const padBottom = 20, padTop = 8;
+  const barW = cssW / values.length;
+  const styles = getComputedStyle(document.documentElement);
+  const accent = styles.getPropertyValue('--accent').trim() || '#4f46e5';
+  const muted = styles.getPropertyValue('--muted').trim() || '#6b7280';
+  values.forEach((v,i)=>{
+    const h = (v/max) * (cssH - padBottom - padTop);
+    const x = i*barW + barW*0.2;
+    const y = cssH - padBottom - h;
+    ctx.fillStyle = accent;
+    ctx.beginPath();
+    if(ctx.roundRect){ ctx.roundRect(x, y, barW*0.6, h, 4); } else { ctx.rect(x,y,barW*0.6,h); }
+    ctx.fill();
+    ctx.fillStyle = muted;
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(labels[i], x + barW*0.3, cssH - 6);
+  });
+}
+
+function renderSales(){
+  const month = todayStr();
+  document.getElementById('salesMonthLabel').textContent = new Date().toLocaleDateString(undefined,{month:'long'});
+  const monthSales = state.sales.filter(s=>isSameMonth(s.date, month));
+  const total = monthSales.reduce((s,e)=>s+Number(e.amount),0);
+  document.getElementById('salesTotal').textContent = fmtMoney(total);
+  document.getElementById('salesCount').textContent = monthSales.length;
+
+  const labels = [], values = [];
+  for(let i=6;i>=0;i--){
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const ds = d.toISOString().slice(0,10);
+    labels.push(d.toLocaleDateString(undefined,{weekday:'narrow'}));
+    values.push(state.sales.filter(s=>s.date===ds).reduce((a,s)=>a+Number(s.amount),0));
+  }
+  drawBarChart('salesChart', labels, values);
+
+  const byItem = {};
+  state.sales.forEach(s=>{ byItem[s.item] = (byItem[s.item]||0) + Number(s.amount); });
+  const top = Object.entries(byItem).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  document.getElementById('topItems').innerHTML = top.length ? top.map(([name,amt])=>`
+    <div class="list-item"><div class="meta"><div class="title">${name}</div></div><div class="amt">${fmtMoney(amt)}</div></div>
+  `).join('') : '<div class="empty">No sales yet.</div>';
+
+  const list = state.sales.slice(0,50).map(s=>{
+    const statusLower = (s.status||'').toLowerCase();
+    const statusColor = statusLower.includes('receiv') ? 'var(--green)' : (statusLower.includes('pend')||statusLower.includes('overdue') ? 'var(--red)' : 'var(--muted)');
+    return `
+    <div class="list-item" data-id="${s.id}" data-kind="sale">
+      <div class="meta"><div class="title">${s.item}${s.customer?' · '+s.customer:''}</div><div class="sub">${fmtDateNice(s.date)}${s.status?' · '+s.status:''}</div></div>
+      <div style="text-align:right;">
+        <div class="amt">${fmtMoney(s.amount)}</div>
+        ${s.status?`<span class="pill" style="background:transparent;color:${statusColor};border:1px solid ${statusColor};margin-top:4px;display:inline-block;">${s.status}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('salesList').innerHTML = list || '<div class="empty">No sales logged yet.</div>';
+  document.querySelectorAll('#salesList .list-item').forEach(el=>{
+    el.onclick = ()=>{
+      const item = state.sales.find(x=>x.id===el.dataset.id);
+      if(item) openSaleModal(item);
+    };
+  });
+
+  renderCollections();
+  renderPipeline();
+}
+
+function getCollectionsSummary(){
+  let invoiced=0, received=0;
+  state.sales.forEach(s=>{
+    invoiced += Number(s.amount)||0;
+    if(s.received!=null && s.received!=='') received += Number(s.received)||0;
+    else if((s.status||'').toLowerCase().includes('receiv')) received += Number(s.amount)||0;
+  });
+  const outstanding = invoiced - received;
+  const pct = invoiced>0 ? Math.min(100, (received/invoiced)*100) : 0;
+  return {invoiced, received, outstanding, pct};
+}
+
+function getPipelineByStage(){
+  const byStage = {};
+  (state.pipeline||[]).forEach(p=>{
+    const st = p.stage || 'Unknown';
+    if(!byStage[st]) byStage[st] = {count:0, deal:0, weighted:0};
+    byStage[st].count++;
+    byStage[st].deal += Number(p.dealValue)||0;
+    byStage[st].weighted += Number(p.weightedValue)||0;
+  });
+  const order = Object.entries(byStage).sort((a,b)=>b[1].weighted-a[1].weighted);
+  const totalWeighted = order.reduce((s,[,v])=>s+v.weighted,0);
+  return {order, totalWeighted};
+}
+
+function renderCollections(){
+  const {invoiced, received, outstanding, pct} = getCollectionsSummary();
+  document.getElementById('colInvoiced').textContent = fmtMoney(invoiced);
+  document.getElementById('colReceived').textContent = fmtMoney(received);
+  document.getElementById('colOutstanding').textContent = fmtMoney(outstanding);
+  document.getElementById('colPct').textContent = Math.round(pct) + '% collected';
+  document.getElementById('colFill').style.width = pct + '%';
+}
+
+function renderPipeline(){
+  const card = document.getElementById('pipelineCard');
+  if(!state.pipeline || state.pipeline.length===0){ card.style.display='none'; return; }
+  card.style.display='block';
+  const {order, totalWeighted} = getPipelineByStage();
+  document.getElementById('pipelineStages').innerHTML = `
+    <div class="row" style="margin-bottom:8px;"><span class="sub">Total weighted pipeline</span><span style="font-weight:700;">${fmtMoney(totalWeighted)}</span></div>
+    ${order.map(([stage,v])=>`
+      <div class="list-item"><div class="meta"><div class="title">${stage}</div><div class="sub">${v.count} deal${v.count!==1?'s':''} · ${fmtMoney(v.deal)}</div></div><div class="amt">${fmtMoney(v.weighted)}</div></div>
+    `).join('')}
+  `;
+}
+
+// ---------- Workbook Import (Excel/CSV) ----------
+function parseAmount(v){
+  if(v===null||v===undefined||v==='') return 0;
+  if(typeof v==='number') return v;
+  const cleaned = String(v).replace(/[^0-9.\-]/g,'');
+  const n = parseFloat(cleaned);
+  return isNaN(n) ? 0 : n;
+}
+
+function parseFlexibleDate(raw, headerHint){
+  if(raw instanceof Date && !isNaN(raw)) return raw;
+  if(typeof raw==='number' && window.XLSX && XLSX.SSF && XLSX.SSF.parse_date_code){
+    const d = XLSX.SSF.parse_date_code(raw);
+    if(d) return new Date(d.y, d.m-1, d.d);
+  }
+  if(typeof raw==='string'){
+    const s = raw.trim();
+    const m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);
+    if(m){
+      let a=+m[1], b=+m[2], y=+m[3];
+      if(y<100) y += 2000;
+      const hint = (headerHint||'').toLowerCase();
+      let day, month;
+      if(hint.includes('mm/dd') || hint.includes('mm-dd') || hint.includes('mm.dd')){ month=a; day=b; }
+      else if(hint.includes('dd/mm') || hint.includes('dd-mm') || hint.includes('dd.mm')){ day=a; month=b; }
+      else if(a>12){ day=a; month=b; }
+      else if(b>12){ month=a; day=b; }
+      else { day=a; month=b; } // default to DD/MM when ambiguous
+      const dt = new Date(y, month-1, day);
+      if(!isNaN(dt)) return dt;
+    }
+    const iso = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if(iso) return new Date(+iso[1], +iso[2]-1, +iso[3]);
+    const parsed = new Date(s);
+    if(!isNaN(parsed)) return parsed;
+  }
+  return null;
+}
+
+function toISODate(v, headerHint){
+  const d = parseFlexibleDate(v, headerHint);
+  if(d){
+    const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  }
+  return todayStr();
+}
+
+function findCol(lowerHeaders, patterns){
+  for(const p of patterns){
+    const idx = lowerHeaders.findIndex(h=>h.includes(p));
+    if(idx!==-1) return idx;
+  }
+  return -1;
+}
+
+function parseWorkbookSheet(sheetName, ws, tally){
+  const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
+  let headerRowIdx = -1;
+  for(let i=0;i<Math.min(rows.length,15);i++){
+    const r = rows[i] || [];
+    const nonNullStrings = r.filter(c=>typeof c==='string' && c.trim()!=='').length;
+    if(nonNullStrings>=3){ headerRowIdx = i; break; }
+  }
+  if(headerRowIdx===-1) return;
+  const headers = (rows[headerRowIdx]||[]).map(h=>(h===null||h===undefined?'':h.toString().trim()));
+  const lower = headers.map(h=>h.toLowerCase());
+  const dataRows = rows.slice(headerRowIdx+1).filter(r=> r && r.some(c=>c!==null && c!==''));
+
+  const clientIdx = findCol(lower, ['client name','customer name','client','customer']);
+  const invAmountIdx = findCol(lower, ['total invoice','invoice amount','amount']);
+  const invDateIdx = findCol(lower, ['invoice date','date']);
+  const stageIdx = findCol(lower, ['stage']);
+  const dealValIdx = findCol(lower, ['deal value']);
+
+  const looksLikeBilling = invAmountIdx!==-1 && invDateIdx!==-1 && clientIdx!==-1;
+  const looksLikePipeline = stageIdx!==-1 && dealValIdx!==-1;
+
+  if(looksLikeBilling){
+    const descIdx = findCol(lower, ['description','billing type','product / service','product']);
+    const statusIdx = findCol(lower, ['collection status','status']);
+    const receivedIdx = findCol(lower, ['amount received','received']);
+    const balanceIdx = findCol(lower, ['balance pending','balance']);
+    const invoiceNoIdx = findCol(lower, ['invoice no','invoice number','invoice id']);
+    dataRows.forEach(r=>{
+      const amount = parseAmount(r[invAmountIdx]);
+      if(amount<=0) return;
+      const date = toISODate(r[invDateIdx], headers[invDateIdx]);
+      const invoiceNo = invoiceNoIdx!==-1 ? (r[invoiceNoIdx]||'') : '';
+      const key = 'sale_'+sheetName+'_'+invoiceNo+'_'+date+'_'+amount;
+      if(state.sales.some(s=>s.importKey===key)) return;
+      state.sales.unshift({
+        id: uid(),
+        item: (descIdx!==-1 && r[descIdx]) ? r[descIdx] : sheetName,
+        amount,
+        customer: clientIdx!==-1 ? (r[clientIdx]||'') : '',
+        date,
+        status: statusIdx!==-1 ? (r[statusIdx]||'') : '',
+        received: receivedIdx!==-1 ? parseAmount(r[receivedIdx]) : null,
+        balance: balanceIdx!==-1 ? parseAmount(r[balanceIdx]) : null,
+        invoiceNo,
+        importKey: key
+      });
+      tally.salesAdded++; tally.salesTotal += amount;
+    });
+    return;
+  }
+
+  if(looksLikePipeline){
+    const weightedIdx = findCol(lower, ['weighted value']);
+    const probIdx = findCol(lower, ['probability']);
+    const idIdx = findCol(lower, ['lead id']);
+    const followUpIdx = findCol(lower, ['follow-up status','followup status','follow up status']);
+    const nextActionIdx = findCol(lower, ['next action date']);
+    dataRows.forEach(r=>{
+      if(!r[stageIdx]) return;
+      const leadId = idIdx!==-1 ? r[idIdx] : null;
+      const client = clientIdx!==-1 ? (r[clientIdx]||'') : '';
+      const key = 'lead_'+(leadId || (client+'_'+r[stageIdx]));
+      const existingIdx = state.pipeline.findIndex(p=>p.importKey===key);
+      const rec = {
+        id: existingIdx>=0 ? state.pipeline[existingIdx].id : uid(),
+        leadId, client, stage: r[stageIdx],
+        dealValue: parseAmount(r[dealValIdx]),
+        weightedValue: weightedIdx!==-1 ? parseAmount(r[weightedIdx]) : 0,
+        probability: probIdx!==-1 ? parseAmount(r[probIdx]) : 0,
+        followUpStatus: followUpIdx!==-1 ? (r[followUpIdx]||'') : '',
+        nextActionDate: nextActionIdx!==-1 ? toISODate(r[nextActionIdx], headers[nextActionIdx]) : '',
+        importKey: key
+      };
+      if(existingIdx>=0) state.pipeline[existingIdx] = rec;
+      else { state.pipeline.push(rec); tally.pipelineAdded++; }
+    });
+    return;
+  }
+
+  // Generic expense/income-shaped table fallback
+  const amtIdx = findCol(lower, ['amount','amt','total','value']);
+  const dateIdx2 = findCol(lower, ['date']);
+  if(amtIdx!==-1 && dateIdx2!==-1){
+    const catIdx = findCol(lower, ['category']);
+    const subcatIdx = findCol(lower, ['subcategory','sub category','sub-category']);
+    const merchantIdx = findCol(lower, ['merchant','payee','vendor']);
+    const noteIdx = findCol(lower, ['note','description','item','product']);
+    const typeIdx = findCol(lower, ['type (expense','expense/income','type']);
+    dataRows.forEach(r=>{
+      const amount = parseAmount(r[amtIdx]);
+      if(amount<=0) return;
+      if(typeIdx!==-1){
+        const t = (r[typeIdx]||'').toString().toLowerCase();
+        if(t.includes('income') || t.includes('refund') || t.includes('credit')){
+          tally.incomeSkipped = (tally.incomeSkipped||0) + 1;
+          return;
+        }
+      }
+      const date = toISODate(r[dateIdx2], headers[dateIdx2]);
+      const category = catIdx!==-1 ? (r[catIdx]||'Other') : 'Other';
+      const noteParts = [];
+      if(merchantIdx!==-1 && r[merchantIdx]) noteParts.push(r[merchantIdx]);
+      if(subcatIdx!==-1 && r[subcatIdx]) noteParts.push(r[subcatIdx]);
+      if(noteIdx!==-1 && r[noteIdx]) noteParts.push(r[noteIdx]);
+      const note = noteParts.join(' · ');
+      const key = 'exp_'+sheetName+'_'+date+'_'+amount+'_'+category+'_'+note;
+      if(state.expenses.some(e=>e.importKey===key)) return;
+      state.expenses.unshift({
+        id: uid(), amount, category, note, date, importKey: key
+      });
+      tally.expensesAdded++;
+    });
+  }
+}
+
+function handleWorkbookImport(file){
+  if(!file) return;
+  if(typeof XLSX === 'undefined'){
+    toast('Import needs an internet connection the first time (loading parser)...');
+    setTimeout(()=>handleWorkbookImport(file), 1200);
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    try{
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, {type:'array', cellDates:true, raw:true});
+      const tally = {salesAdded:0, salesTotal:0, pipelineAdded:0, expensesAdded:0};
+      wb.SheetNames.forEach(name=>{
+        try{ parseWorkbookSheet(name, wb.Sheets[name], tally); }catch(err){ console.warn('sheet parse error', name, err); }
+      });
+      if(tally.salesAdded>0 && state.currency==='$') state.currency = '₹';
+      save(); renderAll();
+      const parts = [];
+      if(tally.salesAdded) parts.push(`${tally.salesAdded} sales (${fmtMoney(tally.salesTotal)})`);
+      if(tally.pipelineAdded) parts.push(`${tally.pipelineAdded} pipeline leads`);
+      if(tally.expensesAdded) parts.push(`${tally.expensesAdded} expenses`);
+      const summary = parts.length ? 'Imported: ' + parts.join(', ') : 'No recognizable sales, pipeline, or expense rows found.';
+      toast(summary);
+      const summaryEl1 = document.getElementById('importSummarySales');
+      const summaryEl2 = document.getElementById('importSummaryExp');
+      if(summaryEl1) summaryEl1.textContent = summary;
+      if(summaryEl2) summaryEl2.textContent = summary;
+    }catch(err){
+      console.error(err);
+      toast('Could not read that file. Is it a valid .xlsx/.csv?');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+document.getElementById('workbookFile').addEventListener('change', (ev)=>{
+  const file = ev.target.files[0];
+  handleWorkbookImport(file);
+  ev.target.value = '';
+});
+document.getElementById('importSalesBtn').addEventListener('click', ()=> document.getElementById('workbookFile').click());
+document.getElementById('importExpenseBtn').addEventListener('click', ()=> document.getElementById('workbookFile').click());
+
+// ---------- Tasks & Reminders ----------
+let taskFilter = 'open';
+document.querySelectorAll('#taskFilterChips .tag-btn').forEach(btn=>{
+  btn.onclick = ()=>{
+    document.querySelectorAll('#taskFilterChips .tag-btn').forEach(b=>b.classList.remove('selected'));
+    btn.classList.add('selected');
+    taskFilter = btn.dataset.filter;
+    renderTasks();
+  };
+});
+
+function openTaskModal(existing){
+  const t = existing || {id:null, title:'', due: todayStr(), time:'', priority:'p3', notes:'', done:false};
+  openModal(`
+    <h3>${existing? 'Edit task':'Add task'}</h3>
+    <label>Title</label>
+    <input type="text" id="f_title" placeholder="What needs doing?" value="${t.title}">
+    <div class="field-row">
+      <div><label>Due date</label><input type="date" id="f_due" value="${t.due||''}"></div>
+      <div><label>Time (optional)</label><input type="time" id="f_time" value="${t.time||''}"></div>
+    </div>
+    <label>Priority</label>
+    <div class="chips" id="prioChips">
+      ${['p1','p2','p3','p4'].map(p=>`<button type="button" class="tag-btn ${t.priority===p?'selected':''}" data-p="${p}">${p.toUpperCase()}</button>`).join('')}
+    </div>
+    <label>Notes</label>
+    <textarea id="f_notes" rows="2">${t.notes||''}</textarea>
+    <div style="display:flex; gap:8px; margin-top:6px;">
+      ${existing? '<button class="secondary" id="f_delete" style="color:var(--red);border-color:var(--red);">Delete</button>':''}
+      <button class="primary" id="f_save">${existing?'Save':'Add task'}</button>
+    </div>
+  `);
+  let chosenP = t.priority;
+  document.querySelectorAll('#prioChips .tag-btn').forEach(b=>{
+    b.onclick = ()=>{ document.querySelectorAll('#prioChips .tag-btn').forEach(x=>x.classList.remove('selected')); b.classList.add('selected'); chosenP=b.dataset.p; };
+  });
+  document.getElementById('f_save').onclick = ()=>{
+    const title = document.getElementById('f_title').value.trim();
+    if(!title){ toast('Enter a title'); return; }
+    const due = document.getElementById('f_due').value;
+    const time = document.getElementById('f_time').value;
+    const notes = document.getElementById('f_notes').value.trim();
+    if(existing){ Object.assign(existing,{title,due,time,priority:chosenP,notes}); }
+    else{ state.tasks.unshift({id:uid(),title,due,time,priority:chosenP,notes,done:false}); }
+    save(); closeModal(); renderAll(); toast('Task saved');
+  };
+  if(existing){
+    document.getElementById('f_delete').onclick = ()=>{
+      state.tasks = state.tasks.filter(x=>x.id!==existing.id);
+      save(); closeModal(); renderAll(); toast('Task deleted');
+    };
+  }
+}
+
+function taskRowHtml(t){
+  const prioColor = {p1:'var(--red)',p2:'var(--amber)',p3:'var(--accent)',p4:'var(--muted)'}[t.priority]||'var(--muted)';
+  return `<div class="list-item" data-id="${t.id}" data-kind="task">
+    <button class="ghost check-task" data-id="${t.id}" style="font-size:20px;">${t.done?'✅':'⬜'}</button>
+    <div class="meta">
+      <div class="title" style="${t.done?'text-decoration:line-through;color:var(--muted);':''}">${t.title}</div>
+      <div class="sub">${t.due?fmtDateNice(t.due):'No date'}${t.time?' · '+t.time:''}</div>
+    </div>
+    <span class="pill" style="background:transparent;color:${prioColor};border:1px solid ${prioColor};">${t.priority.toUpperCase()}</span>
+  </div>`;
+}
+
+function renderTasks(){
+  const today = todayStr();
+  let list = state.tasks.slice();
+  if(taskFilter==='open') list = list.filter(t=>!t.done);
+  else if(taskFilter==='today') list = list.filter(t=>!t.done && t.due===today);
+  else if(taskFilter==='done') list = list.filter(t=>t.done);
+  list.sort((a,b)=> (a.due||'9999').localeCompare(b.due||'9999'));
+  document.getElementById('taskList').innerHTML = list.length ? list.map(taskRowHtml).join('') : '<div class="empty">Nothing here.</div>';
+  wireTaskRows('#taskList');
+}
+function wireTaskRows(scopeSel){
+  document.querySelectorAll(scopeSel+' .check-task').forEach(btn=>{
+    btn.onclick = (ev)=>{
+      ev.stopPropagation();
+      const t = state.tasks.find(x=>x.id===btn.dataset.id);
+      if(t){ t.done = !t.done; save(); renderAll(); }
+    };
+  });
+  document.querySelectorAll(scopeSel+' .list-item').forEach(el=>{
+    el.onclick = (ev)=>{
+      if(ev.target.classList.contains('check-task')) return;
+      const t = state.tasks.find(x=>x.id===el.dataset.id);
+      if(t) openTaskModal(t);
+    };
+  });
+}
+
+// ---------- Goals ----------
+function openGoalModal(existing){
+  const g = existing || {id:null, title:'', target:100, progress:0, unit:'', due:''};
+  openModal(`
+    <h3>${existing? 'Edit goal':'Add goal'}</h3>
+    <label>Goal title</label>
+    <input type="text" id="f_title" placeholder="e.g. Save for a car" value="${g.title}">
+    <div class="field-row">
+      <div><label>Target</label><input type="number" id="f_target" value="${g.target}"></div>
+      <div><label>Current progress</label><input type="number" id="f_progress" value="${g.progress}"></div>
+    </div>
+    <div class="field-row">
+      <div><label>Unit (optional)</label><input type="text" id="f_unit" placeholder="$, kg, books..." value="${g.unit||''}"></div>
+      <div><label>Target date</label><input type="date" id="f_due" value="${g.due||''}"></div>
+    </div>
+    <div style="display:flex; gap:8px; margin-top:6px;">
+      ${existing? '<button class="secondary" id="f_delete" style="color:var(--red);border-color:var(--red);">Delete</button>':''}
+      <button class="primary" id="f_save">${existing?'Save':'Add goal'}</button>
+    </div>
+  `);
+  document.getElementById('f_save').onclick = ()=>{
+    const title = document.getElementById('f_title').value.trim();
+    if(!title){ toast('Enter a title'); return; }
+    const target = parseFloat(document.getElementById('f_target').value)||1;
+    const progress = parseFloat(document.getElementById('f_progress').value)||0;
+    const unit = document.getElementById('f_unit').value.trim();
+    const due = document.getElementById('f_due').value;
+    if(existing){ Object.assign(existing,{title,target,progress,unit,due}); }
+    else{ state.goals.unshift({id:uid(),title,target,progress,unit,due}); }
+    save(); closeModal(); renderAll(); toast('Goal saved');
+  };
+  if(existing){
+    document.getElementById('f_delete').onclick = ()=>{
+      state.goals = state.goals.filter(x=>x.id!==existing.id);
+      save(); closeModal(); renderAll(); toast('Goal deleted');
+    };
+  }
+}
+
+function goalRowHtml(g){
+  const pct = Math.max(0, Math.min(100, (g.progress/g.target)*100 || 0));
+  return `<div class="list-item" style="display:block;" data-id="${g.id}" data-kind="goal">
+    <div class="row"><span class="title">${g.title}</span><span class="sub">${Math.round(pct)}%</span></div>
+    <div class="progress-bar"><div class="fill ${pct>=100?'good':''}" style="width:${pct}%;"></div></div>
+    <div class="row"><span class="sub">${g.progress}${g.unit} / ${g.target}${g.unit}</span><span class="sub">${g.due?'by '+fmtDateNice(g.due):''}</span></div>
+    <div style="display:flex; gap:6px; margin-top:8px;">
+      <button class="secondary quick-add" data-id="${g.id}" style="width:auto;">+ Add progress</button>
+    </div>
+  </div>`;
+}
+function renderGoals(){
+  const list = state.goals;
+  document.getElementById('goalList').innerHTML = list.length ? list.map(goalRowHtml).join('') : '<div class="empty">No goals yet. Tap + to add one.</div>';
+  document.querySelectorAll('#goalList .list-item').forEach(el=>{
+    el.onclick = (ev)=>{
+      if(ev.target.classList.contains('quick-add')) return;
+      const g = state.goals.find(x=>x.id===el.dataset.id);
+      if(g) openGoalModal(g);
+    };
+  });
+  document.querySelectorAll('#goalList .quick-add').forEach(btn=>{
+    btn.onclick = (ev)=>{
+      ev.stopPropagation();
+      const g = state.goals.find(x=>x.id===btn.dataset.id);
+      const val = prompt('Add how much progress?', '1');
+      if(val!==null && !isNaN(parseFloat(val))){
+        g.progress = Number(g.progress) + parseFloat(val);
+        save(); renderAll();
+      }
+    };
+  });
+}
+
+// ---------- Habits ----------
+function openHabitModal(existing){
+  const h = existing || {id:null, name:'', checkins:[]};
+  openModal(`
+    <h3>${existing? 'Edit habit':'Add habit'}</h3>
+    <label>Habit name</label>
+    <input type="text" id="f_name" placeholder="e.g. Drink water, Read, Exercise" value="${h.name}">
+    <div style="display:flex; gap:8px; margin-top:6px;">
+      ${existing? '<button class="secondary" id="f_delete" style="color:var(--red);border-color:var(--red);">Delete</button>':''}
+      <button class="primary" id="f_save">${existing?'Save':'Add habit'}</button>
+    </div>
+  `);
+  document.getElementById('f_save').onclick = ()=>{
+    const name = document.getElementById('f_name').value.trim();
+    if(!name){ toast('Enter a name'); return; }
+    if(existing){ existing.name = name; }
+    else{ state.habits.unshift({id:uid(),name,checkins:[]}); }
+    save(); closeModal(); renderAll(); toast('Habit saved');
+  };
+  if(existing){
+    document.getElementById('f_delete').onclick = ()=>{
+      state.habits = state.habits.filter(x=>x.id!==existing.id);
+      save(); closeModal(); renderAll(); toast('Habit deleted');
+    };
+  }
+}
+
+function computeStreak(checkins){
+  const set = new Set(checkins);
+  let streak = 0;
+  let d = new Date();
+  if(!set.has(todayStr())) d.setDate(d.getDate()-1);
+  while(true){
+    const ds = d.toISOString().slice(0,10);
+    if(set.has(ds)){ streak++; d.setDate(d.getDate()-1); } else break;
+  }
+  return streak;
+}
+
+function habitRowHtml(h){
+  const streak = computeStreak(h.checkins);
+  const set = new Set(h.checkins);
+  const days = [];
+  for(let i=6;i>=0;i--){
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const ds = d.toISOString().slice(0,10);
+    const label = d.toLocaleDateString(undefined,{weekday:'narrow'});
+    days.push({ds,label, done:set.has(ds), today: ds===todayStr()});
+  }
+  return `<div class="list-item" style="display:block;" data-id="${h.id}" data-kind="habit">
+    <div class="row"><span class="title">${h.name}</span><span class="pill">🔥 ${streak}</span></div>
+    <div class="habit-grid">
+      ${days.map(d=>`<div class="habit-day ${d.done?'done':''} ${d.today?'today':''}" data-habit="${h.id}" data-date="${d.ds}">${d.label}</div>`).join('')}
+    </div>
+  </div>`;
+}
+function renderHabits(){
+  const list = state.habits;
+  document.getElementById('habitList').innerHTML = list.length ? list.map(habitRowHtml).join('') : '<div class="empty">No habits yet. Tap + to add one.</div>';
+  document.querySelectorAll('#habitList .habit-day').forEach(cell=>{
+    cell.onclick = (ev)=>{
+      ev.stopPropagation();
+      const h = state.habits.find(x=>x.id===cell.dataset.habit);
+      const ds = cell.dataset.date;
+      if(!h) return;
+      const idx = h.checkins.indexOf(ds);
+      if(idx>=0) h.checkins.splice(idx,1); else h.checkins.push(ds);
+      save(); renderAll();
+    };
+  });
+  document.querySelectorAll('#habitList .list-item').forEach(el=>{
+    el.addEventListener('dblclick', ()=>{
+      const h = state.habits.find(x=>x.id===el.dataset.id);
+      if(h) openHabitModal(h);
+    });
+  });
+}
+
+// ---------- Dashboard ----------
+function daysInMonthCount(year, month){ return new Date(year, month, 0).getDate(); }
+function monthBounds(offset){
+  const d = new Date(); d.setDate(1); d.setMonth(d.getMonth()+offset);
+  return { year: d.getFullYear(), month: d.getMonth()+1, key: d.toISOString().slice(0,7) };
+}
+
+function getMonthPace(){
+  const now = new Date();
+  const dayOfMonth = now.getDate();
+  const thisM = monthBounds(0), lastM = monthBounds(-1);
+  const daysThisMonth = daysInMonthCount(thisM.year, thisM.month);
+
+  const thisMonthExpenses = state.expenses.filter(e=>monthKey(e.date)===thisM.key);
+  const lastMonthExpenses = state.expenses.filter(e=>monthKey(e.date)===lastM.key);
+  const thisSpend = thisMonthExpenses.reduce((s,e)=>s+Number(e.amount||0),0);
+  const lastSpend = lastMonthExpenses.reduce((s,e)=>s+Number(e.amount||0),0);
+  const projectedSpend = dayOfMonth>0 ? (thisSpend/dayOfMonth)*daysThisMonth : thisSpend;
+  const spendDeltaPct = lastSpend>0 ? ((projectedSpend-lastSpend)/lastSpend)*100 : null;
+
+  const thisMonthSales = state.sales.filter(s=>monthKey(s.date)===thisM.key);
+  const lastMonthSales = state.sales.filter(s=>monthKey(s.date)===lastM.key);
+  const thisSales = thisMonthSales.reduce((s,e)=>s+Number(e.amount||0),0);
+  const lastSales = lastMonthSales.reduce((s,e)=>s+Number(e.amount||0),0);
+  const projectedSales = dayOfMonth>0 ? (thisSales/dayOfMonth)*daysThisMonth : thisSales;
+  const salesDeltaPct = lastSales>0 ? ((projectedSales-lastSales)/lastSales)*100 : null;
+
+  return { thisSpend, lastSpend, projectedSpend, spendDeltaPct, thisMonthExpenses,
+           thisSales, lastSales, projectedSales, salesDeltaPct };
+}
+
+function generateInsights(){
+  const insights = [];
+  const pace = getMonthPace();
+  const todayS = todayStr();
+
+  if(pace.thisSpend>0 && pace.spendDeltaPct!==null){
+    if(pace.spendDeltaPct>15){
+      insights.push({sev:'warn', icon:'⚠️', text:`On pace to spend ${fmtMoney(pace.projectedSpend)} this month, ${Math.round(pace.spendDeltaPct)}% more than last month (${fmtMoney(pace.lastSpend)}).`});
+    } else if(pace.spendDeltaPct<-15){
+      insights.push({sev:'good', icon:'✓', text:`On pace to spend ${fmtMoney(pace.projectedSpend)} this month, ${Math.round(Math.abs(pace.spendDeltaPct))}% less than last month.`});
+    }
+  }
+
+  if(pace.thisSpend>0){
+    const byCat = {};
+    pace.thisMonthExpenses.forEach(e=>{ byCat[e.category] = (byCat[e.category]||0) + Number(e.amount||0); });
+    const top = Object.entries(byCat).sort((a,b)=>b[1]-a[1])[0];
+    if(top){
+      const pct = Math.round((top[1]/pace.thisSpend)*100);
+      insights.push({sev:'info', icon:'📊', text:`${top[0]} is your top spending category this month at ${fmtMoney(top[1])} (${pct}% of total).`});
+    }
+    Object.entries(state.budgets).forEach(([cat,budget])=>{
+      if(Number(budget)>0 && (byCat[cat]||0) > Number(budget)){
+        insights.push({sev:'warn', icon:'💸', text:`${cat} is ${fmtMoney(byCat[cat]-budget)} over its ${fmtMoney(budget)} budget this month.`});
+      }
+    });
+  }
+
+  if(pace.thisSales===0 && pace.lastSales>0){
+    insights.push({sev:'info', icon:'📉', text:`No sales logged yet this month (last month: ${fmtMoney(pace.lastSales)}).`});
+  } else if(pace.salesDeltaPct!==null){
+    if(pace.salesDeltaPct>=10){
+      insights.push({sev:'good', icon:'📈', text:`Sales are pacing ${Math.round(pace.salesDeltaPct)}% ahead of last month (${fmtMoney(pace.lastSales)}).`});
+    } else if(pace.salesDeltaPct<=-10){
+      insights.push({sev:'warn', icon:'📉', text:`Sales are pacing ${Math.round(Math.abs(pace.salesDeltaPct))}% behind last month (${fmtMoney(pace.lastSales)}).`});
+    }
+  }
+
+  const coll = getCollectionsSummary();
+  if(coll.invoiced>0 && coll.outstanding>0){
+    insights.push({sev: coll.pct<70?'warn':'info', icon:'🧾', text:`${fmtMoney(coll.outstanding)} pending collection across sales (${Math.round(coll.pct)}% collected).`});
+  }
+
+  const overdueTasks = state.tasks.filter(t=>!t.done && t.due && t.due<todayS);
+  if(overdueTasks.length>0){
+    insights.push({sev:'warn', icon:'⏰', text:`${overdueTasks.length} task${overdueTasks.length!==1?'s':''} overdue.`});
+  }
+
+  const overdueLeads = (state.pipeline||[]).filter(p=>(p.followUpStatus||'').toLowerCase().includes('overdue'));
+  if(overdueLeads.length>0){
+    insights.push({sev:'warn', icon:'📞', text:`${overdueLeads.length} lead${overdueLeads.length!==1?'s':''} overdue for follow-up.`});
+  }
+
+  if(state.habits.length>0){
+    const streaks = state.habits.map(h=>({name:h.name, streak:computeStreak(h.checkins)})).sort((a,b)=>b.streak-a.streak);
+    if(streaks[0] && streaks[0].streak>=3){
+      insights.push({sev:'good', icon:'🔥', text:`${streaks[0].name} streak: ${streaks[0].streak} days — keep it going!`});
+    }
+    const last7 = [];
+    for(let i=0;i<7;i++){ const d=new Date(); d.setDate(d.getDate()-i); last7.push(d.toISOString().slice(0,10)); }
+    const neglected = state.habits.filter(h=> !h.checkins.some(c=>last7.includes(c)));
+    if(neglected.length>0){
+      insights.push({sev:'warn', icon:'💤', text:`${neglected.map(h=>h.name).slice(0,2).join(', ')} not logged in the last 7 days.`});
+    }
+  }
+
+  state.goals.forEach(g=>{
+    if(g.due && g.due<todayS && Number(g.progress) < Number(g.target)){
+      const pct = Math.round((Number(g.progress)/Number(g.target))*100);
+      insights.push({sev:'warn', icon:'🎯', text:`"${g.title}" is past its target date (${fmtDateNice(g.due)}) at ${pct}%.`});
+    }
+  });
+
+  const order = {warn:0, good:1, info:2};
+  insights.sort((a,b)=> order[a.sev]-order[b.sev]);
+  return insights.slice(0,6);
+}
+
+function renderDeltaBadge(elId, pct, invert){
+  const el = document.getElementById(elId);
+  if(pct===null || pct===undefined || !isFinite(pct)){ el.textContent=''; return; }
+  const isUp = pct>=0;
+  const good = invert ? isUp : !isUp;
+  el.textContent = (isUp?'▲ ':'▼ ') + Math.round(Math.abs(pct)) + '% vs last mo.';
+  el.style.color = good ? 'var(--green)' : 'var(--red)';
+}
+
+function renderInsights(){
+  const insights = generateInsights();
+  const list = document.getElementById('insightsList');
+  list.innerHTML = insights.length ? insights.map(i=>`
+    <div class="insight-row ${i.sev}">
+      <div class="insight-icon">${i.icon}</div>
+      <div class="insight-text">${i.text}</div>
+    </div>
+  `).join('') : '<div class="empty">Add a bit more data (expenses, sales, tasks) and insights will show up here.</div>';
+}
+
+function renderDashboard(){
+  renderInsights();
+  const today = todayStr();
+  const monthExpenses = state.expenses.filter(e=>isSameMonth(e.date, today));
+  const spent = monthExpenses.reduce((s,e)=>s+Number(e.amount),0);
+  const totalBudget = Object.values(state.budgets).reduce((s,v)=>s+Number(v),0);
+  document.getElementById('dashSpent').textContent = fmtMoney(spent);
+  document.getElementById('dashBudgetLeft').textContent = fmtMoney(totalBudget-spent);
+  const monthSales = state.sales.filter(s=>isSameMonth(s.date, today));
+  document.getElementById('dashSales').textContent = fmtMoney(monthSales.reduce((s,e)=>s+Number(e.amount),0));
+  const todaysTasks = state.tasks.filter(t=>!t.done && t.due===today);
+  document.getElementById('dashTasks').textContent = todaysTasks.length;
+
+  const pace = getMonthPace();
+  renderDeltaBadge('dashSpentDelta', pace.spendDeltaPct, false);
+  renderDeltaBadge('dashSalesDelta', pace.salesDeltaPct, true);
+
+  const collSummary = getCollectionsSummary();
+  document.getElementById('dashOutstanding').textContent = fmtMoney(collSummary.outstanding);
+  const pipeSummary = getPipelineByStage();
+  document.getElementById('dashPipeline').textContent = fmtMoney(pipeSummary.totalWeighted);
+
+  document.getElementById('dashTaskList').innerHTML = todaysTasks.length
+    ? todaysTasks.slice(0,5).map(taskRowHtml).join('')
+    : '<div class="empty">Nothing due today 🎉</div>';
+  wireTaskRows('#dashTaskList');
+
+  document.getElementById('dashHabitList').innerHTML = state.habits.length
+    ? state.habits.map(h=>{
+        const done = h.checkins.includes(today);
+        return `<div class="list-item"><button class="ghost check-habit" data-id="${h.id}" style="font-size:20px;">${done?'✅':'⬜'}</button>
+          <div class="meta"><div class="title">${h.name}</div><div class="sub">🔥 ${computeStreak(h.checkins)} day streak</div></div></div>`;
+      }).join('')
+    : '<div class="empty">No habits yet.</div>';
+  document.querySelectorAll('#dashHabitList .check-habit').forEach(btn=>{
+    btn.onclick = ()=>{
+      const h = state.habits.find(x=>x.id===btn.dataset.id);
+      const idx = h.checkins.indexOf(today);
+      if(idx>=0) h.checkins.splice(idx,1); else h.checkins.push(today);
+      save(); renderAll();
+    };
+  });
+
+  const activeGoals = state.goals.filter(g=>Number(g.progress) < Number(g.target)).slice(0,3);
+  document.getElementById('dashGoalList').innerHTML = activeGoals.length
+    ? activeGoals.map(goalRowHtml).join('')
+    : '<div class="empty">No active goals.</div>';
+  document.querySelectorAll('#dashGoalList .list-item').forEach(el=>{
+    el.onclick = (ev)=>{
+      if(ev.target.classList.contains('quick-add')) return;
+      const g = state.goals.find(x=>x.id===el.dataset.id);
+      if(g) openGoalModal(g);
+    };
+  });
+
+  document.getElementById('dashSalesList').innerHTML = state.sales.slice(0,5).map(s=>{
+    const statusLower = (s.status||'').toLowerCase();
+    const statusColor = statusLower.includes('receiv') ? 'var(--green)' : (statusLower.includes('pend')||statusLower.includes('overdue') ? 'var(--red)' : 'var(--muted)');
+    return `<div class="list-item" data-id="${s.id}">
+      <div class="meta"><div class="title">${s.item}${s.customer?' · '+s.customer:''}</div><div class="sub">${fmtDateNice(s.date)}</div></div>
+      <div style="text-align:right;"><div class="amt">${fmtMoney(s.amount)}</div>${s.status?`<span class="pill" style="background:transparent;color:${statusColor};border:1px solid ${statusColor};margin-top:4px;display:inline-block;">${s.status}</span>`:''}</div>
+    </div>`;
+  }).join('') || '<div class="empty">No sales yet.</div>';
+  document.querySelectorAll('#dashSalesList .list-item').forEach(el=>{
+    el.onclick = ()=>{
+      const item = state.sales.find(x=>x.id===el.dataset.id);
+      if(item) openSaleModal(item);
+    };
+  });
+
+  const dashPipelineCard = document.getElementById('dashPipelineCard');
+  if(state.pipeline && state.pipeline.length>0){
+    dashPipelineCard.style.display = 'block';
+    const {order, totalWeighted} = getPipelineByStage();
+    document.getElementById('dashPipelineList').innerHTML = `
+      <div class="row" style="margin-bottom:8px;"><span class="sub">Total weighted pipeline</span><span style="font-weight:700;">${fmtMoney(totalWeighted)}</span></div>
+      ${order.slice(0,4).map(([stage,v])=>`
+        <div class="list-item"><div class="meta"><div class="title">${stage}</div><div class="sub">${v.count} deal${v.count!==1?'s':''}</div></div><div class="amt">${fmtMoney(v.weighted)}</div></div>
+      `).join('')}
+    `;
+  } else {
+    dashPipelineCard.style.display = 'none';
+  }
+
+  document.getElementById('dashExpenseList').innerHTML = state.expenses.slice(0,5).map(e=>`
+    <div class="list-item" data-id="${e.id}"><div class="meta"><div class="title">${e.category}</div><div class="sub">${fmtDateNice(e.date)}</div></div><div class="amt">${fmtMoney(e.amount)}</div></div>
+  `).join('') || '<div class="empty">No expenses yet.</div>';
+  document.querySelectorAll('#dashExpenseList .list-item').forEach(el=>{
+    el.onclick = ()=>{
+      const item = state.expenses.find(x=>x.id===el.dataset.id);
+      if(item) openExpenseModal(item);
+    };
+  });
+}
+
+// ---------- Settings ----------
+document.getElementById('settingsBtn').onclick = ()=>{
+  openModal(`
+    <h3>Settings</h3>
+    <label>Currency symbol</label>
+    <input type="text" id="s_currency" value="${state.currency}" maxlength="3">
+    <button class="primary" id="saveCurrency">Save</button>
+    <div class="section-title">Reminders</div>
+    <button class="secondary" id="enableNotifs" style="width:100%;margin-bottom:10px;">Enable task reminders</button>
+    <div class="section-title">Backup</div>
+    <button class="secondary" id="exportBtn" style="width:100%;margin-bottom:8px;">Export data (.json)</button>
+    <button class="secondary" id="importBtn" style="width:100%;margin-bottom:8px;">Import data (.json)</button>
+    <div class="section-title">Danger zone</div>
+    <button class="secondary" id="clearBtn" style="width:100%;color:var(--red);border-color:var(--red);">Erase all data</button>
+  `);
+  document.getElementById('saveCurrency').onclick = ()=>{
+    state.currency = document.getElementById('s_currency').value || '$';
+    save(); closeModal(); renderAll(); toast('Saved');
+  };
+  document.getElementById('enableNotifs').onclick = ()=>{
+    if(!('Notification' in window)){ toast('Notifications not supported here'); return; }
+    Notification.requestPermission().then(p=>{
+      toast(p==='granted' ? 'Reminders enabled' : 'Permission not granted');
+    });
+  };
+  document.getElementById('exportBtn').onclick = ()=>{
+    const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'lifehub-backup-'+todayStr()+'.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  };
+  document.getElementById('importBtn').onclick = ()=> document.getElementById('importFile').click();
+  document.getElementById('clearBtn').onclick = ()=>{
+    if(confirm('This deletes all data on this device. Continue?')){
+      state = defaultState(); save(); closeModal(); renderAll(); toast('All data erased');
+    }
+  };
+};
+document.getElementById('importFile').addEventListener('change', (ev)=>{
+  const file = ev.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const parsed = JSON.parse(reader.result);
+      state = Object.assign(defaultState(), parsed);
+      save(); closeModal(); renderAll(); toast('Data imported');
+    }catch(e){ toast('Invalid file'); }
+  };
+  reader.readAsText(file);
+  ev.target.value = '';
+});
+
+// ---------- FAB ----------
+document.getElementById('fabBtn').onclick = ()=>{
+  if(currentView==='dashboard' || currentView==='expenses') openExpenseModal();
+  else if(currentView==='sales') openSaleModal();
+  else if(currentView==='tasks') openTaskModal();
+  else if(currentView==='goals') openGoalModal();
+  else if(currentView==='habits') openHabitModal();
+};
+
+// ---------- Reminder check (best-effort, only while app is open) ----------
+function checkDueReminders(){
+  if(!('Notification' in window) || Notification.permission!=='granted') return;
+  const now = new Date();
+  state.tasks.filter(t=>!t.done && t.due===todayStr() && t.time).forEach(t=>{
+    const [h,m] = t.time.split(':').map(Number);
+    const due = new Date(); due.setHours(h,m,0,0);
+    const diffMin = (due-now)/60000;
+    const key = 'notified_'+t.id;
+    if(diffMin<=1 && diffMin>=-5 && !sessionStorage.getItem(key)){
+      new Notification('LifeHub reminder', {body:t.title});
+      sessionStorage.setItem(key,'1');
+    }
+  });
+}
+setInterval(checkDueReminders, 30000);
+
+// ---------- Render all ----------
+function renderAll(){
+  setDateHeader();
+  if(currentView==='dashboard') renderDashboard();
+  if(currentView==='expenses') renderExpenses();
+  if(currentView==='sales') renderSales();
+  if(currentView==='tasks') renderTasks();
+  if(currentView==='goals') renderGoals();
+  if(currentView==='habits') renderHabits();
+}
+
+// ---------- Init ----------
+applyTheme();
+switchView('dashboard');
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
