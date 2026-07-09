@@ -105,7 +105,9 @@ nav.bottomnav button{
   justify-content:center;gap:2px;color:var(--muted);cursor:pointer;font-size:10px;font-weight:600;
 }
 nav.bottomnav button.active{color:var(--accent);}
-nav.bottomnav svg{width:22px;height:22px;}
+nav.bottomnav svg{width:22px;height:22px;transition:transform .15s ease;}
+nav.bottomnav button.active svg{transform:translateY(-1px) scale(1.08);}
+.nav-indicator{position:absolute;top:0;left:0;height:3px;width:28px;border-radius:0 0 4px 4px;background:var(--accent);transition:transform .28s cubic-bezier(.4,0,.2,1);transform:translateX(0);}
 .progress-bar{height:8px;border-radius:999px;background:var(--border);overflow:hidden;margin:6px 0;}
 .progress-bar .fill{height:100%;border-radius:999px;background:var(--accent);}
 .progress-bar .fill.over{background:var(--red);}
@@ -117,13 +119,18 @@ nav.bottomnav svg{width:22px;height:22px;}
 .tag-btn.selected{background:var(--accent);color:#fff;border-color:var(--accent);}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
 .modal-backdrop{
-  position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:40;display:flex;align-items:flex-end;
+  position:fixed;inset:0;background:rgba(0,0,0,0);z-index:40;display:flex;align-items:flex-end;
+  opacity:0;pointer-events:none;transition:opacity .25s ease,background-color .25s ease;
 }
 .modal-backdrop.hidden{display:none;}
+.modal-backdrop.show{opacity:1;pointer-events:auto;background:rgba(0,0,0,.45);}
 .modal-sheet{
   background:var(--bg);width:100%;max-width:520px;margin:0 auto;border-radius:18px 18px 0 0;
-  padding:18px 18px calc(20px + env(safe-area-inset-bottom));max-height:88vh;overflow-y:auto;
+  padding:10px 18px calc(20px + env(safe-area-inset-bottom));max-height:88vh;overflow-y:auto;
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);
 }
+.modal-backdrop.show .modal-sheet{transform:translateY(0);}
+.modal-handle{width:36px;height:4px;border-radius:999px;background:var(--border);margin:0 auto 14px;}
 .modal-sheet h3{margin:0 0 12px;font-size:16px;}
 .habit-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:8px;}
 .habit-day{
@@ -134,6 +141,27 @@ nav.bottomnav svg{width:22px;height:22px;}
 .habit-day.today{outline:2px solid var(--accent);}
 canvas{width:100%!important;height:140px!important;}
 .section-title{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:14px 0 6px;font-weight:700;}
+.check-circle{width:23px;height:23px;border-radius:7px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--card);transition:all .15s ease;cursor:pointer;padding:0;}
+.check-circle:active{transform:scale(.88);}
+.check-circle.checked{background:var(--accent);border-color:var(--accent);}
+.check-circle svg{width:14px;height:14px;opacity:0;transform:scale(.4);transition:all .15s ease;stroke:#fff;}
+.check-circle.checked svg{opacity:1;transform:scale(1);}
+.empty-state{text-align:center;padding:26px 14px;}
+.empty-icon{font-size:30px;margin-bottom:8px;opacity:.75;}
+.empty-text{font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.4;}
+.empty-cta{width:auto!important;padding:8px 20px!important;display:inline-block;}
+.card{box-shadow:0 1px 2px rgba(0,0,0,.04),0 1px 8px rgba(0,0,0,.03);}
+[data-theme="dark"] .card{box-shadow:0 1px 2px rgba(0,0,0,.15),0 1px 10px rgba(0,0,0,.12);}
+.stat{transition:transform .12s ease;}
+button.primary:active, button.secondary:active, .tag-btn:active{transform:scale(.97);}
+.list-item{transition:background .12s ease;border-radius:10px;position:relative;}
+.list-item:active{background:var(--accent-soft);}
+.row-delete{background:none;border:none;color:var(--muted);opacity:.45;cursor:pointer;padding:4px;margin-left:2px;flex-shrink:0;border-radius:6px;transition:opacity .15s ease,color .15s ease,background .15s ease;}
+.row-delete svg{width:15px;height:15px;display:block;}
+.row-delete:active{opacity:1;color:var(--red);background:rgba(220,38,38,.1);}
+.icon-btn svg{width:19px;height:19px;}
+.icon-btn{transition:transform .12s ease;}
+.icon-btn:active{transform:scale(.9);}
 .insight-row{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--border);}
 .insight-row:last-child{border-bottom:none;}
 .insight-icon{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;}
@@ -161,8 +189,8 @@ canvas{width:100%!important;height:140px!important;}
       <div class="sub" id="pageDate"></div>
     </div>
     <div style="display:flex;gap:8px;">
-      <button class="icon-btn" id="themeBtn" title="Toggle theme">🌓</button>
-      <button class="icon-btn" id="settingsBtn" title="Settings">⚙️</button>
+      <button class="icon-btn" id="themeBtn" title="Toggle theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg></button>
+      <button class="icon-btn" id="settingsBtn" title="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 005 15a1.65 1.65 0 00-1.51-1H3.4a2 2 0 010-4h.09A1.65 1.65 0 005 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019 9c.13.36.32.68.6.94.28.26.6.45.94.6a1.65 1.65 0 00.9-.03H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
     </div>
   </header>
 
@@ -218,6 +246,13 @@ canvas{width:100%!important;height:140px!important;}
       <div class="stat-grid">
         <div class="stat"><div class="label">Spent (<span id="expMonthLabel"></span>)</div><div class="value" id="expTotal">$0</div></div>
         <div class="stat"><div class="label">Budget left</div><div class="value" id="expLeft">$0</div></div>
+      </div>
+      <div class="card" id="categoryDonutCard" style="display:none;">
+        <h2>Spending by category</h2>
+        <div style="display:flex;align-items:center;gap:16px;">
+          <canvas id="categoryDonut" width="140" height="140" style="width:140px!important;height:140px!important;flex-shrink:0;"></canvas>
+          <div id="categoryLegend" style="flex:1;min-width:0;"></div>
+        </div>
       </div>
       <div class="card">
         <h2>Import from Excel/CSV</h2>
@@ -306,6 +341,7 @@ canvas{width:100%!important;height:140px!important;}
   <button class="fab" id="fabBtn">+</button>
 
   <nav class="bottomnav">
+    <div class="nav-indicator" id="navIndicator"></div>
     <button class="navbtn active" data-view="dashboard">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>
       Home
@@ -344,6 +380,7 @@ canvas{width:100%!important;height:140px!important;}
 <script>
 // ---------- Storage ----------
 const STORAGE_KEY = 'lifehub_v1';
+const TRASH_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
 const DEFAULT_CATEGORIES = ['Food','Transport','Housing','Utilities','Shopping','Entertainment','Health','Other'];
 
 function defaultState(){
@@ -392,6 +429,14 @@ function toast(msg){
   toast._h = setTimeout(()=>t.classList.remove('show'), 2200);
 }
 
+function emptyState(icon, text, ctaLabel, ctaFn){
+  return `<div class="empty-state">
+    <div class="empty-icon">${icon}</div>
+    <div class="empty-text">${text}</div>
+    ${ctaLabel ? `<button class="secondary empty-cta" onclick="${ctaFn}()">${ctaLabel}</button>` : ''}
+  </div>`;
+}
+
 // ---------- Theme ----------
 function applyTheme(){
   document.documentElement.setAttribute('data-theme', state.theme);
@@ -406,15 +451,37 @@ const views = ['dashboard','expenses','sales','tasks','goals','habits'];
 let currentView = 'dashboard';
 const titles = {dashboard:'Dashboard', expenses:'Budget', sales:'Sales', tasks:'Tasks', goals:'Goals', habits:'Habits'};
 
+function greetingText(){
+  const h = new Date().getHours();
+  if(h<5) return 'Good night';
+  if(h<12) return 'Good morning';
+  if(h<17) return 'Good afternoon';
+  if(h<21) return 'Good evening';
+  return 'Good night';
+}
+
+function updateNavIndicator(){
+  const activeBtn = document.querySelector('.navbtn.active');
+  const nav = document.querySelector('nav.bottomnav');
+  const indicator = document.getElementById('navIndicator');
+  if(!activeBtn || !nav || !indicator) return;
+  const rect = activeBtn.getBoundingClientRect();
+  const navRect = nav.getBoundingClientRect();
+  const centerX = (rect.left - navRect.left) + rect.width/2;
+  indicator.style.transform = `translateX(${centerX-14}px)`;
+}
+
 function switchView(v){
   currentView = v;
   views.forEach(name=>{
     document.getElementById('view-'+name).classList.toggle('active', name===v);
   });
   document.querySelectorAll('.navbtn').forEach(b=> b.classList.toggle('active', b.dataset.view===v));
-  document.getElementById('pageTitle').textContent = titles[v];
+  document.getElementById('pageTitle').textContent = v==='dashboard' ? greetingText() : titles[v];
+  updateNavIndicator();
   renderAll();
 }
+window.addEventListener('resize', updateNavIndicator);
 document.querySelectorAll('.navbtn').forEach(btn=>{
   btn.addEventListener('click', ()=> switchView(btn.dataset.view));
 });
@@ -427,10 +494,14 @@ function setDateHeader(){
 const backdrop = document.getElementById('modalBackdrop');
 const sheet = document.getElementById('modalSheet');
 function openModal(html){
-  sheet.innerHTML = html;
+  sheet.innerHTML = '<div class="modal-handle"></div>' + html;
   backdrop.classList.remove('hidden');
+  requestAnimationFrame(()=> requestAnimationFrame(()=> backdrop.classList.add('show')));
 }
-function closeModal(){ backdrop.classList.add('hidden'); sheet.innerHTML=''; }
+function closeModal(){
+  backdrop.classList.remove('show');
+  setTimeout(()=>{ backdrop.classList.add('hidden'); sheet.innerHTML=''; }, 300);
+}
 backdrop.addEventListener('click', (e)=>{ if(e.target === backdrop) closeModal(); });
 
 // ---------- Expenses & Budget ----------
@@ -522,6 +593,26 @@ function renderExpenses(){
 
   const byCat = {};
   monthExpenses.forEach(e=>{ byCat[e.category] = (byCat[e.category]||0) + Number(e.amount); });
+
+  const donutCard = document.getElementById('categoryDonutCard');
+  const catEntries = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+  if(catEntries.length>0){
+    donutCard.style.display = 'block';
+    drawDonutChart('categoryDonut', catEntries.map(([name,value])=>({name,value})));
+    document.getElementById('categoryLegend').innerHTML = catEntries.slice(0,6).map(([name,value],i)=>{
+      const pct = Math.round((value/total)*100);
+      return `<div class="row" style="margin-bottom:6px;">
+        <span style="display:flex;align-items:center;gap:7px;font-size:12.5px;min-width:0;">
+          <span style="width:9px;height:9px;border-radius:3px;background:${DONUT_PALETTE[i%DONUT_PALETTE.length]};flex-shrink:0;"></span>
+          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${name}</span>
+        </span>
+        <span style="font-size:12px;color:var(--muted);flex-shrink:0;">${pct}%</span>
+      </div>`;
+    }).join('');
+  } else {
+    donutCard.style.display = 'none';
+  }
+
   const bars = Object.keys(state.budgets).filter(c=>state.budgets[c]>0 || byCat[c]).map(c=>{
     const spent = byCat[c]||0; const budget = state.budgets[c]||0;
     const pct = budget>0 ? Math.min(100,(spent/budget)*100) : (spent>0?100:0);
@@ -531,18 +622,29 @@ function renderExpenses(){
       <div class="progress-bar"><div class="fill ${overClass}" style="width:${pct}%;"></div></div>
     </div>`;
   }).join('');
-  document.getElementById('budgetBars').innerHTML = bars || '<div class="empty">No budgets set yet.</div>';
+  document.getElementById('budgetBars').innerHTML = bars || emptyState('💰','No budgets set yet — set one to track spend by category.','Set budgets','openBudgetsModal');
 
   const list = state.expenses.slice(0,50).map(e=>`
     <div class="list-item" data-id="${e.id}" data-kind="expense">
       <div class="meta"><div class="title">${e.category}${e.note?': '+e.note:''}</div><div class="sub">${fmtDateNice(e.date)}</div></div>
       <div class="amt">${fmtMoney(e.amount)}</div>
+      <button class="row-delete" data-id="${e.id}" title="Delete">${TRASH_SVG}</button>
     </div>`).join('');
-  document.getElementById('expenseList').innerHTML = list || '<div class="empty">No expenses logged yet.</div>';
+  document.getElementById('expenseList').innerHTML = list || emptyState('🧾','No expenses logged yet.','Add expense','openExpenseModal');
   document.querySelectorAll('#expenseList .list-item, #dashExpenseList .list-item').forEach(el=>{
-    el.onclick = ()=>{
+    el.onclick = (ev)=>{
+      if(ev.target.closest('.row-delete')) return;
       const item = state.expenses.find(x=>x.id===el.dataset.id);
       if(item) openExpenseModal(item);
+    };
+  });
+  document.querySelectorAll('#expenseList .row-delete').forEach(btn=>{
+    btn.onclick = (ev)=>{
+      ev.stopPropagation();
+      if(confirm('Delete this expense?')){
+        state.expenses = state.expenses.filter(x=>x.id!==btn.dataset.id);
+        save(); renderAll(); toast('Expense deleted');
+      }
     };
   });
 }
@@ -613,6 +715,36 @@ function drawBarChart(canvasId, labels, values){
   });
 }
 
+const DONUT_PALETTE = ['#4f46e5','#0ea5e9','#16a34a','#d97706','#dc2626','#a855f7','#0d9488','#e11d48','#64748b','#84cc16'];
+
+function drawDonutChart(canvasId, entries){
+  const canvas = document.getElementById(canvasId);
+  const dpr = window.devicePixelRatio || 1;
+  const size = canvas.clientWidth || 140;
+  canvas.width = size*dpr; canvas.height = size*dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,size,size);
+  const total = entries.reduce((s,e)=>s+e.value,0) || 1;
+  const cx = size/2, cy = size/2, rOuter = size/2 - 4, rInner = rOuter*0.6;
+  let angle = -Math.PI/2;
+  entries.forEach((e,i)=>{
+    const slice = (e.value/total) * Math.PI*2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, rOuter, angle, angle+slice);
+    ctx.arc(cx, cy, rInner, angle+slice, angle, true);
+    ctx.closePath();
+    ctx.fillStyle = DONUT_PALETTE[i % DONUT_PALETTE.length];
+    ctx.fill();
+    angle += slice;
+  });
+  const styles = getComputedStyle(document.documentElement);
+  ctx.fillStyle = styles.getPropertyValue('--text').trim() || '#111827';
+  ctx.font = '600 15px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+}
+
 function renderSales(){
   const month = todayStr();
   document.getElementById('salesMonthLabel').textContent = new Date().toLocaleDateString(undefined,{month:'long'});
@@ -635,7 +767,7 @@ function renderSales(){
   const top = Object.entries(byItem).sort((a,b)=>b[1]-a[1]).slice(0,5);
   document.getElementById('topItems').innerHTML = top.length ? top.map(([name,amt])=>`
     <div class="list-item"><div class="meta"><div class="title">${name}</div></div><div class="amt">${fmtMoney(amt)}</div></div>
-  `).join('') : '<div class="empty">No sales yet.</div>';
+  `).join('') : emptyState('💼','No sales logged yet.','','');
 
   const list = state.sales.slice(0,50).map(s=>{
     const statusLower = (s.status||'').toLowerCase();
@@ -647,13 +779,24 @@ function renderSales(){
         <div class="amt">${fmtMoney(s.amount)}</div>
         ${s.status?`<span class="pill" style="background:transparent;color:${statusColor};border:1px solid ${statusColor};margin-top:4px;display:inline-block;">${s.status}</span>`:''}
       </div>
+      <button class="row-delete" data-id="${s.id}" title="Delete">${TRASH_SVG}</button>
     </div>`;
   }).join('');
-  document.getElementById('salesList').innerHTML = list || '<div class="empty">No sales logged yet.</div>';
+  document.getElementById('salesList').innerHTML = list || emptyState('💼','No sales logged yet.','Add sale','openSaleModal');
   document.querySelectorAll('#salesList .list-item').forEach(el=>{
-    el.onclick = ()=>{
+    el.onclick = (ev)=>{
+      if(ev.target.closest('.row-delete')) return;
       const item = state.sales.find(x=>x.id===el.dataset.id);
       if(item) openSaleModal(item);
+    };
+  });
+  document.querySelectorAll('#salesList .row-delete').forEach(btn=>{
+    btn.onclick = (ev)=>{
+      ev.stopPropagation();
+      if(confirm('Delete this sale?')){
+        state.sales = state.sales.filter(x=>x.id!==btn.dataset.id);
+        save(); renderAll(); toast('Sale deleted');
+      }
     };
   });
 
@@ -982,7 +1125,7 @@ function openTaskModal(existing){
 function taskRowHtml(t){
   const prioColor = {p1:'var(--red)',p2:'var(--amber)',p3:'var(--accent)',p4:'var(--muted)'}[t.priority]||'var(--muted)';
   return `<div class="list-item" data-id="${t.id}" data-kind="task">
-    <button class="ghost check-task" data-id="${t.id}" style="font-size:20px;">${t.done?'✅':'⬜'}</button>
+    <button class="check-circle check-task ${t.done?'checked':''}" data-id="${t.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
     <div class="meta">
       <div class="title" style="${t.done?'text-decoration:line-through;color:var(--muted);':''}">${t.title}</div>
       <div class="sub">${t.due?fmtDateNice(t.due):'No date'}${t.time?' · '+t.time:''}</div>
@@ -998,7 +1141,7 @@ function renderTasks(){
   else if(taskFilter==='today') list = list.filter(t=>!t.done && t.due===today);
   else if(taskFilter==='done') list = list.filter(t=>t.done);
   list.sort((a,b)=> (a.due||'9999').localeCompare(b.due||'9999'));
-  document.getElementById('taskList').innerHTML = list.length ? list.map(taskRowHtml).join('') : '<div class="empty">Nothing here.</div>';
+  document.getElementById('taskList').innerHTML = list.length ? list.map(taskRowHtml).join('') : emptyState('✅','Nothing here.','Add task','openTaskModal');
   wireTaskRows('#taskList');
 }
 function wireTaskRows(scopeSel){
@@ -1011,7 +1154,7 @@ function wireTaskRows(scopeSel){
   });
   document.querySelectorAll(scopeSel+' .list-item').forEach(el=>{
     el.onclick = (ev)=>{
-      if(ev.target.classList.contains('check-task')) return;
+      if(ev.target.closest('.check-task')) return;
       const t = state.tasks.find(x=>x.id===el.dataset.id);
       if(t) openTaskModal(t);
     };
@@ -1070,7 +1213,7 @@ function goalRowHtml(g){
 }
 function renderGoals(){
   const list = state.goals;
-  document.getElementById('goalList').innerHTML = list.length ? list.map(goalRowHtml).join('') : '<div class="empty">No goals yet. Tap + to add one.</div>';
+  document.getElementById('goalList').innerHTML = list.length ? list.map(goalRowHtml).join('') : emptyState('🎯','No goals yet.','Add goal','openGoalModal');
   document.querySelectorAll('#goalList .list-item').forEach(el=>{
     el.onclick = (ev)=>{
       if(ev.target.classList.contains('quick-add')) return;
@@ -1149,7 +1292,7 @@ function habitRowHtml(h){
 }
 function renderHabits(){
   const list = state.habits;
-  document.getElementById('habitList').innerHTML = list.length ? list.map(habitRowHtml).join('') : '<div class="empty">No habits yet. Tap + to add one.</div>';
+  document.getElementById('habitList').innerHTML = list.length ? list.map(habitRowHtml).join('') : emptyState('🔥','No habits yet.','Add habit','openHabitModal');
   document.querySelectorAll('#habitList .habit-day').forEach(cell=>{
     cell.onclick = (ev)=>{
       ev.stopPropagation();
@@ -1328,7 +1471,7 @@ function renderDashboard(){
   document.getElementById('dashHabitList').innerHTML = state.habits.length
     ? state.habits.map(h=>{
         const done = h.checkins.includes(today);
-        return `<div class="list-item"><button class="ghost check-habit" data-id="${h.id}" style="font-size:20px;">${done?'✅':'⬜'}</button>
+        return `<div class="list-item"><button class="check-circle check-habit ${done?'checked':''}" data-id="${h.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
           <div class="meta"><div class="title">${h.name}</div><div class="sub">🔥 ${computeStreak(h.checkins)} day streak</div></div></div>`;
       }).join('')
     : '<div class="empty">No habits yet.</div>';
