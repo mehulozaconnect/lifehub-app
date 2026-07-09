@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#4f46e5">
+<meta name="theme-color" content="#0ea472">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="LifeHub">
@@ -14,12 +14,12 @@
 <style>
 :root{
   --bg:#f3f4f6; --card:#ffffff; --text:#111827; --muted:#6b7280; --border:#e5e7eb;
-  --accent:#4f46e5; --accent-soft:#eef2ff; --green:#16a34a; --red:#dc2626; --amber:#d97706;
+  --accent:#0ea472; --accent-soft:#e6f9f2; --green:#0ea472; --red:#e5484d; --amber:#d97706;
   --radius:14px; --nav-h:64px; --header-h:56px;
 }
 [data-theme="dark"]{
-  --bg:#0f172a; --card:#1e293b; --text:#f1f5f9; --muted:#94a3b8; --border:#334155;
-  --accent:#818cf8; --accent-soft:#312e81;
+  --bg:#0a0a0b; --card:#17181c; --text:#f5f5f7; --muted:#8b8f96; --border:#232529;
+  --accent:#33d9a0; --accent-soft:#123328; --green:#33d9a0; --red:#ff5a5f; --amber:#f5a524;
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;height:100%;}
@@ -90,7 +90,7 @@ label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px;}
 .fab{
   position:fixed;bottom:calc(var(--nav-h) + 16px);right:calc((100vw - min(520px,100vw))/2 + 16px);
   width:52px;height:52px;border-radius:50%;background:var(--accent);color:#fff;border:none;
-  font-size:26px;box-shadow:0 6px 16px rgba(79,70,229,.4);cursor:pointer;z-index:25;
+  font-size:26px;box-shadow:0 6px 16px rgba(14,164,114,.4);cursor:pointer;z-index:25;
   display:flex;align-items:center;justify-content:center;line-height:0;
 }
 nav.bottomnav{
@@ -158,6 +158,8 @@ button.primary:active, button.secondary:active, .tag-btn:active{transform:scale(
 .list-item:active{background:var(--accent-soft);}
 .row-delete{background:none;border:none;color:var(--muted);opacity:.45;cursor:pointer;padding:4px;margin-left:2px;flex-shrink:0;border-radius:6px;transition:opacity .15s ease,color .15s ease,background .15s ease;}
 .row-delete svg{width:15px;height:15px;display:block;}
+.cat-chip{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.cat-chip svg{width:18px;height:18px;}
 .row-delete:active{opacity:1;color:var(--red);background:rgba(220,38,38,.1);}
 .icon-btn svg{width:19px;height:19px;}
 .icon-btn{transition:transform .12s ease;}
@@ -380,6 +382,50 @@ button.primary:active, button.secondary:active, .tag-btn:active{transform:scale(
 <script>
 // ---------- Storage ----------
 const STORAGE_KEY = 'lifehub_v1';
+const CATEGORY_ICONS = {
+  food: '<path d="M7 2v7c0 1 .5 2 2 2s2-1 2-2V2M9 11v11M17 2c-2 0-3 2-3 4v4c0 1 .5 2 2 2h1v9"/>',
+  shopping: '<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/>',
+  transport: '<path d="M5 17h14M5 17a2 2 0 01-2-2v-3l2-5h14l2 5v3a2 2 0 01-2 2M7.5 17a1.5 1.5 0 003 0M13.5 17a1.5 1.5 0 003 0"/>',
+  housing: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/>',
+  utilities: '<path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/>',
+  health: '<path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 10-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 000-7.8z"/>',
+  entertainment: '<circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4V8z"/>',
+  travel: '<path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>',
+  education: '<path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/>',
+  bills: '<path d="M4 3h16v18l-3-2-2 2-2-2-2 2-2-2-2 2-3-2V3z"/><path d="M8 8h8M8 12h8M8 16h5"/>',
+  donation: '<path d="M20.84 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 10-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 000-7.8z"/>',
+  maintenance: '<path d="M14.7 6.3a4 4 0 11-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 015.4-5.4z"/>',
+  beauty: '<path d="M12 2l1.5 5.5L19 9l-5.5 1.5L12 16l-1.5-5.5L5 9l5.5-1.5L12 2z"/>',
+  transfer: '<path d="M7 10l-4 4 4 4M3 14h13M17 6l4 4-4 4M21 10H8"/>'
+};
+function categoryIconKey(cat){
+  const c = (cat||'').toLowerCase();
+  if(/food|lunch|dinner|breakfast|snack|grocer|vegetable|fruit|milk|bread/.test(c)) return 'food';
+  if(/shop|clothing|amazon/.test(c)) return 'shopping';
+  if(/transport|bike|car|fuel|petrol|scooter/.test(c)) return 'transport';
+  if(/house|rent|housing/.test(c)) return 'housing';
+  if(/util|electric|power|gas\b/.test(c)) return 'utilities';
+  if(/health|medic|pharma|doctor|insurance/.test(c)) return 'health';
+  if(/entertain|movie|music|game/.test(c)) return 'entertainment';
+  if(/travel|flight|trip|holiday/.test(c)) return 'travel';
+  if(/educat|school|tuition|fee|stationary|book/.test(c)) return 'education';
+  if(/bill|subscription/.test(c)) return 'bills';
+  if(/donat|charity|puja|temple/.test(c)) return 'donation';
+  if(/maint|repair|plumb|carpenter/.test(c)) return 'maintenance';
+  if(/beauty|hair|salon|cosmetic/.test(c)) return 'beauty';
+  if(/transfer|cash\b/.test(c)) return 'transfer';
+  return null;
+}
+function hashStr(s){ let h=0; for(let i=0;i<s.length;i++){ h = (h*31 + s.charCodeAt(i))|0; } return Math.abs(h); }
+function categoryColor(cat){ return DONUT_PALETTE[hashStr(cat||'other') % DONUT_PALETTE.length]; }
+function categoryChipHtml(cat){
+  const key = categoryIconKey(cat);
+  const color = categoryColor(cat);
+  const inner = key ? `<svg viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${CATEGORY_ICONS[key]}</svg>`
+                     : `<span style="color:${color};font-weight:700;font-size:14px;">${(cat||'?').charAt(0).toUpperCase()}</span>`;
+  return `<div class="cat-chip" style="background:${color}22;">${inner}</div>`;
+}
+
 const TRASH_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
 const DEFAULT_CATEGORIES = ['Food','Transport','Housing','Utilities','Shopping','Entertainment','Health','Other'];
 
@@ -626,6 +672,7 @@ function renderExpenses(){
 
   const list = state.expenses.slice(0,50).map(e=>`
     <div class="list-item" data-id="${e.id}" data-kind="expense">
+      ${categoryChipHtml(e.category)}
       <div class="meta"><div class="title">${e.category}${e.note?': '+e.note:''}</div><div class="sub">${fmtDateNice(e.date)}</div></div>
       <div class="amt">${fmtMoney(e.amount)}</div>
       <button class="row-delete" data-id="${e.id}" title="Delete">${TRASH_SVG}</button>
@@ -698,7 +745,7 @@ function drawBarChart(canvasId, labels, values){
   const padBottom = 20, padTop = 8;
   const barW = cssW / values.length;
   const styles = getComputedStyle(document.documentElement);
-  const accent = styles.getPropertyValue('--accent').trim() || '#4f46e5';
+  const accent = styles.getPropertyValue('--accent').trim() || '#0ea472';
   const muted = styles.getPropertyValue('--muted').trim() || '#6b7280';
   values.forEach((v,i)=>{
     const h = (v/max) * (cssH - padBottom - padTop);
@@ -715,7 +762,7 @@ function drawBarChart(canvasId, labels, values){
   });
 }
 
-const DONUT_PALETTE = ['#4f46e5','#0ea5e9','#16a34a','#d97706','#dc2626','#a855f7','#0d9488','#e11d48','#64748b','#84cc16'];
+const DONUT_PALETTE = ['#33d9a0','#38bdf8','#f5a524','#ff5a5f','#a78bfa','#fb923c','#0d9488','#f472b6','#94a3b8','#84cc16'];
 
 function drawDonutChart(canvasId, entries){
   const canvas = document.getElementById(canvasId);
@@ -1526,8 +1573,8 @@ function renderDashboard(){
   }
 
   document.getElementById('dashExpenseList').innerHTML = state.expenses.slice(0,5).map(e=>`
-    <div class="list-item" data-id="${e.id}"><div class="meta"><div class="title">${e.category}</div><div class="sub">${fmtDateNice(e.date)}</div></div><div class="amt">${fmtMoney(e.amount)}</div></div>
-  `).join('') || '<div class="empty">No expenses yet.</div>';
+    <div class="list-item" data-id="${e.id}">${categoryChipHtml(e.category)}<div class="meta"><div class="title">${e.category}</div><div class="sub">${fmtDateNice(e.date)}</div></div><div class="amt">${fmtMoney(e.amount)}</div></div>
+  `).join('') || emptyState('🧾','No expenses yet.','','');
   document.querySelectorAll('#dashExpenseList .list-item').forEach(el=>{
     el.onclick = ()=>{
       const item = state.expenses.find(x=>x.id===el.dataset.id);
