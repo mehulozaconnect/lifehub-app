@@ -175,6 +175,33 @@ button.primary:active, button.secondary:active, .tag-btn:active{transform:scale(
 .stat .delta.up{color:var(--red);}
 .stat .delta.down{color:var(--green);}
 .swipe-actions{display:flex;gap:6px;}
+.quick-actions{display:flex;gap:8px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.quick-actions::-webkit-scrollbar{display:none;}
+.qa-btn{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:10px 18px;cursor:pointer;color:var(--text);font-size:11px;font-weight:600;transition:transform .12s ease;box-shadow:0 1px 2px rgba(0,0,0,.04),0 1px 8px rgba(0,0,0,.03);}
+[data-theme="dark"] .qa-btn{box-shadow:0 1px 2px rgba(0,0,0,.15),0 1px 10px rgba(0,0,0,.12);}
+.qa-btn:active{transform:scale(.93);background:var(--accent-soft);}
+.qa-btn svg{width:20px;height:20px;stroke:var(--accent);}
+.flow-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.04),0 1px 8px rgba(0,0,0,.03);}
+[data-theme="dark"] .flow-card{box-shadow:0 1px 2px rgba(0,0,0,.15),0 1px 10px rgba(0,0,0,.12);}
+.flow-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;}
+.flow-amount{font-size:28px;font-weight:800;margin:2px 0 12px;}
+.flow-bar{height:12px;border-radius:999px;background:var(--border);overflow:hidden;display:flex;margin-bottom:8px;}
+.flow-bar .seg-in{background:var(--green);height:100%;}
+.flow-bar .seg-out{background:var(--red);height:100%;}
+.flow-legend{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);}
+.flow-legend b{color:var(--text);font-size:13px;}
+.see-all{font-size:12px;color:var(--accent);font-weight:700;background:none;border:none;cursor:pointer;padding:0;}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.card-head h2{margin:0;}
+.goal-rings{display:flex;gap:16px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.goal-rings::-webkit-scrollbar{display:none;}
+.goal-ring-item{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;width:78px;cursor:pointer;}
+.goal-ring{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:conic-gradient(var(--accent) calc(var(--pct)*1%), var(--border) 0);transition:transform .12s ease;}
+.goal-ring-item:active .goal-ring{transform:scale(.92);}
+.goal-ring-inner{width:52px;height:52px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;}
+.goal-ring-label{font-size:11px;color:var(--muted);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:78px;}
+.timeline-wrap{position:relative;}
+.timeline-empty-note{font-size:11px;color:var(--muted);text-align:center;margin-top:4px;}
 .toast{
   position:fixed;top:14px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);
   padding:9px 16px;border-radius:10px;font-size:13px;z-index:60;opacity:0;transition:opacity .25s;pointer-events:none;
@@ -199,46 +226,66 @@ button.primary:active, button.secondary:active, .tag-btn:active{transform:scale(
   <main>
     <!-- DASHBOARD -->
     <section class="view active" id="view-dashboard">
+      <div class="quick-actions">
+        <button class="qa-btn" id="qaExpense"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M2 10h20"/></svg>Expense</button>
+        <button class="qa-btn" id="qaSale"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 7-8"/><path d="M14 7h7v7"/></svg>Sale</button>
+        <button class="qa-btn" id="qaTask"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12l3 3 5-6"/></svg>Task</button>
+        <button class="qa-btn" id="qaHabit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2c3 4-3 6 0 10 3 4-1 8-1 8s6-2 7-8c1-6-4-8-6-10z"/></svg>Habit</button>
+        <button class="qa-btn" id="qaGoal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>Goal</button>
+      </div>
+
       <div class="card" id="insightsCard">
         <h2>Insights</h2>
         <div id="insightsList"></div>
       </div>
+
+      <div class="flow-card" id="flowCard">
+        <div class="flow-top"><span class="section-title" style="margin:0;">This month</span><span class="pill" id="flowPill" style="background:transparent;"></span></div>
+        <div class="flow-amount" id="flowNet">$0</div>
+        <div class="flow-bar"><div class="seg-in" id="flowSegIn" style="width:50%;"></div><div class="seg-out" id="flowSegOut" style="width:50%;"></div></div>
+        <div class="flow-legend"><span>Income/Sales<br><b id="flowIncome">$0</b> <span class="delta" id="flowIncomeDelta" style="margin:0;"></span></span><span style="text-align:right;">Expenses<br><b id="flowExpense">$0</b> <span class="delta" id="flowExpenseDelta" style="margin:0;"></span></span></div>
+      </div>
+
+      <div class="card timeline-wrap">
+        <div class="card-head"><h2>Spending — last 14 days</h2></div>
+        <canvas id="dashTimeline"></canvas>
+        <div class="timeline-empty-note" id="dashTimelineEmpty" style="display:none;">No expenses logged yet — add one to see your timeline.</div>
+      </div>
+
       <div class="stat-grid">
-        <div class="stat"><div class="label">Spent this month</div><div class="value" id="dashSpent">$0</div><div class="delta" id="dashSpentDelta"></div></div>
         <div class="stat"><div class="label">Budget left</div><div class="value" id="dashBudgetLeft">$0</div></div>
-        <div class="stat"><div class="label">Sales this month</div><div class="value" id="dashSales">$0</div><div class="delta" id="dashSalesDelta"></div></div>
         <div class="stat"><div class="label">Outstanding</div><div class="value" id="dashOutstanding">$0</div></div>
         <div class="stat"><div class="label">Tasks today</div><div class="value" id="dashTasks">0</div></div>
         <div class="stat"><div class="label">Pipeline value</div><div class="value" id="dashPipeline">$0</div></div>
       </div>
 
       <div class="card">
-        <h2>Today's tasks</h2>
+        <div class="card-head"><h2>Today's tasks</h2><button class="see-all" data-goto="tasks">See all →</button></div>
         <div id="dashTaskList"></div>
       </div>
 
       <div class="card">
-        <h2>Habits today</h2>
+        <div class="card-head"><h2>Habits today</h2><button class="see-all" data-goto="habits">See all →</button></div>
         <div id="dashHabitList"></div>
       </div>
 
       <div class="card">
-        <h2>Goals in progress</h2>
-        <div id="dashGoalList"></div>
+        <div class="card-head"><h2>Goals in progress</h2><button class="see-all" data-goto="goals">See all →</button></div>
+        <div class="goal-rings" id="dashGoalRings"></div>
       </div>
 
       <div class="card">
-        <h2>Recent sales</h2>
+        <div class="card-head"><h2>Recent sales</h2><button class="see-all" data-goto="sales">See all →</button></div>
         <div id="dashSalesList"></div>
       </div>
 
       <div class="card" id="dashPipelineCard" style="display:none;">
-        <h2>Pipeline snapshot</h2>
+        <div class="card-head"><h2>Pipeline snapshot</h2><button class="see-all" data-goto="sales">See all →</button></div>
         <div id="dashPipelineList"></div>
       </div>
 
       <div class="card">
-        <h2>Recent expenses</h2>
+        <div class="card-head"><h2>Recent expenses</h2><button class="see-all" data-goto="expenses">See all →</button></div>
         <div id="dashExpenseList"></div>
       </div>
     </section>
@@ -1494,16 +1541,46 @@ function renderDashboard(){
   const monthExpenses = state.expenses.filter(e=>isSameMonth(e.date, today));
   const spent = monthExpenses.reduce((s,e)=>s+Number(e.amount),0);
   const totalBudget = Object.values(state.budgets).reduce((s,v)=>s+Number(v),0);
-  document.getElementById('dashSpent').textContent = fmtMoney(spent);
   document.getElementById('dashBudgetLeft').textContent = fmtMoney(totalBudget-spent);
   const monthSales = state.sales.filter(s=>isSameMonth(s.date, today));
-  document.getElementById('dashSales').textContent = fmtMoney(monthSales.reduce((s,e)=>s+Number(e.amount),0));
+  const salesTotal = monthSales.reduce((s,e)=>s+Number(e.amount),0);
   const todaysTasks = state.tasks.filter(t=>!t.done && t.due===today);
   document.getElementById('dashTasks').textContent = todaysTasks.length;
 
   const pace = getMonthPace();
-  renderDeltaBadge('dashSpentDelta', pace.spendDeltaPct, false);
-  renderDeltaBadge('dashSalesDelta', pace.salesDeltaPct, true);
+  renderDeltaBadge('flowIncomeDelta', pace.salesDeltaPct, true);
+  renderDeltaBadge('flowExpenseDelta', pace.spendDeltaPct, false);
+
+  // Net cash flow hero
+  const net = salesTotal - spent;
+  const flowTotal = salesTotal + spent;
+  const inPct = flowTotal>0 ? (salesTotal/flowTotal)*100 : 50;
+  const outPct = flowTotal>0 ? (spent/flowTotal)*100 : 50;
+  document.getElementById('flowSegIn').style.width = inPct+'%';
+  document.getElementById('flowSegOut').style.width = outPct+'%';
+  document.getElementById('flowIncome').textContent = fmtMoney(salesTotal);
+  document.getElementById('flowExpense').textContent = fmtMoney(spent);
+  const flowNetEl = document.getElementById('flowNet');
+  flowNetEl.textContent = (net>=0?'+':'-') + fmtMoney(Math.abs(net)).replace(/^-/,'');
+  flowNetEl.style.color = net>=0 ? 'var(--green)' : 'var(--red)';
+  const flowPill = document.getElementById('flowPill');
+  if(net>0){ flowPill.textContent='Positive'; flowPill.style.color='var(--green)'; flowPill.style.border='1px solid var(--green)'; }
+  else if(net<0){ flowPill.textContent='Negative'; flowPill.style.color='var(--red)'; flowPill.style.border='1px solid var(--red)'; }
+  else { flowPill.textContent='Break-even'; flowPill.style.color='var(--muted)'; flowPill.style.border='1px solid var(--border)'; }
+
+  // 14-day spending timeline
+  const tlLabels = [], tlValues = [];
+  for(let i=13;i>=0;i--){
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const iso = toISODate(d);
+    const dayTotal = state.expenses.filter(e=>e.date===iso).reduce((s,e)=>s+Number(e.amount),0);
+    tlValues.push(dayTotal);
+    tlLabels.push(String(d.getDate()));
+  }
+  const hasAnyExpense = tlValues.some(v=>v>0);
+  document.getElementById('dashTimeline').style.display = hasAnyExpense ? 'block' : 'none';
+  document.getElementById('dashTimelineEmpty').style.display = hasAnyExpense ? 'none' : 'block';
+  if(hasAnyExpense) drawBarChart('dashTimeline', tlLabels, tlValues);
 
   const collSummary = getCollectionsSummary();
   document.getElementById('dashOutstanding').textContent = fmtMoney(collSummary.outstanding);
@@ -1531,13 +1608,18 @@ function renderDashboard(){
     };
   });
 
-  const activeGoals = state.goals.filter(g=>Number(g.progress) < Number(g.target)).slice(0,3);
-  document.getElementById('dashGoalList').innerHTML = activeGoals.length
-    ? activeGoals.map(goalRowHtml).join('')
+  const activeGoals = state.goals.filter(g=>Number(g.progress) < Number(g.target)).slice(0,6);
+  document.getElementById('dashGoalRings').innerHTML = activeGoals.length
+    ? activeGoals.map(g=>{
+        const pct = Math.max(0, Math.min(100, Math.round((g.progress/g.target)*100 || 0)));
+        return `<div class="goal-ring-item" data-id="${g.id}">
+          <div class="goal-ring" style="--pct:${pct};"><div class="goal-ring-inner">${pct}%</div></div>
+          <div class="goal-ring-label">${g.title}</div>
+        </div>`;
+      }).join('')
     : '<div class="empty">No active goals.</div>';
-  document.querySelectorAll('#dashGoalList .list-item').forEach(el=>{
-    el.onclick = (ev)=>{
-      if(ev.target.classList.contains('quick-add')) return;
+  document.querySelectorAll('#dashGoalRings .goal-ring-item').forEach(el=>{
+    el.onclick = ()=>{
       const g = state.goals.find(x=>x.id===el.dataset.id);
       if(g) openGoalModal(g);
     };
@@ -1646,6 +1728,16 @@ document.getElementById('fabBtn').onclick = ()=>{
   else if(currentView==='goals') openGoalModal();
   else if(currentView==='habits') openHabitModal();
 };
+
+// ---------- Dashboard quick actions + see-all links ----------
+document.getElementById('qaExpense').onclick = ()=> openExpenseModal();
+document.getElementById('qaSale').onclick = ()=> openSaleModal();
+document.getElementById('qaTask').onclick = ()=> openTaskModal();
+document.getElementById('qaHabit').onclick = ()=> openHabitModal();
+document.getElementById('qaGoal').onclick = ()=> openGoalModal();
+document.querySelectorAll('.see-all').forEach(btn=>{
+  btn.onclick = ()=> switchView(btn.dataset.goto);
+});
 
 // ---------- Reminder check (best-effort, only while app is open) ----------
 function checkDueReminders(){
