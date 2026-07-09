@@ -1773,7 +1773,18 @@ switchView('dashboard');
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
-    navigator.serviceWorker.register('sw.js').catch(()=>{});
+    navigator.serviceWorker.register('sw.js').then(reg=>{
+      // If a new SW takes control (i.e. an update was deployed), reload once
+      // automatically so the person always sees the latest version.
+      let refreshed = false;
+      navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+        if(refreshed) return;
+        refreshed = true;
+        window.location.reload();
+      });
+      // Nudge the browser to check for a new sw.js right away.
+      reg.update().catch(()=>{});
+    }).catch(()=>{});
   });
 }
 </script>
